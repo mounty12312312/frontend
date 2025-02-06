@@ -151,6 +151,7 @@
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
     const cartButton = document.getElementById('cart-button');
+    const userBalanceElement = document.getElementById('user-balance');
 
     function addToCart(productId, productName, productPrice) {
       if (!cartItems[productId]) {
@@ -248,9 +249,11 @@
     }
 
     async function updateUserBalance(balance) {
-      const userBalanceElement = document.getElementById('user-balance');
       console.log('Обновление баланса:', balance);
+      console.log('Элемент для обновления баланса:', userBalanceElement);
+      console.log('Текущее значение баланса:', userBalanceElement.textContent);
       userBalanceElement.textContent = balance.toFixed(2);
+      console.log('Новое значение баланса:', userBalanceElement.textContent);
     }
 
     async function fetchUserBalance() {
