@@ -29,20 +29,20 @@
     .header h1 {
       margin: 0;
     }
-    .cart-button {
+    .cart-button, .history-button {
       cursor: pointer;
       background: none;
       border: none;
       font-size: 16px;
       color: #007bff;
     }
-    .cart-button:hover {
+    .cart-button:hover, .history-button:hover {
       text-decoration: underline;
     }
     .balance {
       margin-left: 20px;
     }
-    .cart-container {
+    .cart-container, .history-container {
       display: none;
       position: fixed;
       background-color: white;
@@ -56,7 +56,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
-    .cart-container.show {
+    .cart-container.show, .history-container.show {
       display: block;
     }
     .product {
@@ -74,25 +74,31 @@
       width: 100%;
       height: auto;
     }
-    .order-history {
-      margin-top: 20px;
-      width: 90%;
-      max-width: 400px;
-    }
-    .cart-item {
+    .cart-item, .history-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
-    .cart-item button {
+    .cart-item button, .history-item button {
       margin: 0 5px;
       padding: 2px 5px;
       cursor: pointer;
     }
-    .cart-total {
+    .cart-total, .history-total {
       margin-top: 10px;
       text-align: right;
+    }
+    .back-button {
+      margin-top: 10px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #007bff;
+    }
+    .back-button:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -101,17 +107,20 @@
     <h1>Мерч Самокат</h1>
     <div class="balance">Текущий баланс: <span id="user-balance">0</span> руб.</div>
     <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина: 0 рублей</button>
+    <button class="history-button" id="history-button" onclick="toggleHistory()">История покупок</button>
   </div>
   <div id="products"></div>
-  <div class="order-history">
-    <h2>История заказов</h2>
-    <ul id="order-history"></ul>
-  </div>
   <div class="cart-container" id="cart-container">
     <h2>Корзина</h2>
     <ul id="cart-items"></ul>
     <div class="cart-total">Сумма корзины: <span id="cart-total">0</span> руб.</div>
     <button onclick="checkout()">Оплатить</button>
+    <button class="back-button" onclick="toggleCart()">Назад</button>
+  </div>
+  <div class="history-container" id="history-container">
+    <h2>История покупок</h2>
+    <ul id="history-items"></ul>
+    <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
@@ -220,12 +229,13 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ telegramId, products: cartItems, totalCost })
+            body: JSON.stringify({ telegramId, products: cartItems, totalCost, date: new Date().toISOString() })
           });
           alert('Заказ оформлен!');
           cartItems = {};
           updateCartDisplay();
           updateUserBalance(newBalance);
+          fetchOrderHistory();
         } else {
           alert('Недостаточно средств на счету!');
         }
@@ -242,12 +252,17 @@
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
         const orders = await response.json();
-        const orderHistoryList = document.getElementById('order-history');
-        orderHistoryList.innerHTML = '';
+        const historyItemsList = document.getElementById('history-items');
+        historyItemsList.innerHTML = '';
         orders.forEach(order => {
           const li = document.createElement('li');
-          li.textContent = `Заказ: ${JSON.stringify(order)}`;
-          orderHistoryList.appendChild(li);
+          li.className = 'history-item';
+          li.innerHTML = `
+            <span>${new Date(order.date).toLocaleDateString()}</span>
+            <span>${JSON.stringify(order.products)}</span>
+            <span>${order.totalCost} руб.</span>
+          `;
+          historyItemsList.appendChild(li);
         });
       } catch (error) {
         console.error('Ошибка при получении истории заказов:', error);
@@ -302,6 +317,15 @@
     function toggleCart() {
       const cartContainer = document.getElementById('cart-container');
       cartContainer.classList.toggle('show');
+      const historyContainer = document.getElementById('history-container');
+      historyContainer.classList.remove('show');
+    }
+
+    function toggleHistory() {
+      const historyContainer = document.getElementById('history-container');
+      historyContainer.classList.toggle('show');
+      const cartContainer = document.getElementById('cart-container');
+      cartContainer.classList.remove('show');
     }
 
     // Дополнительная проверка после загрузки DOM
@@ -321,8 +345,7 @@
     window.onload = () => {
       setTimeout(() => {
         fetchProducts();
-        // Закомментируем вызов fetchOrderHistory(), так как маршрут не существует
-        // fetchOrderHistory();
+        fetchOrderHistory();
       }, 100); // Задержка 100 мс
     };
   </script>
