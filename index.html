@@ -199,6 +199,7 @@
       try {
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         const user = await response.json();
+        console.log('Данные пользователя:', user);
         if (!Array.isArray(user) || user.length !== 2) {
           throw new Error('Неверный формат данных пользователя');
         }
@@ -248,6 +249,7 @@
 
     async function updateUserBalance(balance) {
       const userBalanceElement = document.getElementById('user-balance');
+      console.log('Обновление баланса:', balance);
       userBalanceElement.textContent = balance.toFixed(2);
     }
 
