@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,13 +7,12 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin: 0;
+      padding: 0;
     }
-
     .product {
       border: 1px solid #ccc;
       padding: 10px;
@@ -24,18 +23,15 @@
       flex-direction: column;
       align-items: center;
     }
-
     .product img {
       width: 100%;
       height: auto;
     }
-
     .cart {
       margin-top: 20px;
       width: 90%;
       max-width: 400px;
     }
-
     .order-history {
       margin-top: 20px;
       width: 90%;
@@ -58,140 +54,106 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const telegram = window.Telegram.WebApp;
+    // Инициализация Telegram Mini Apps SDK
+    const telegram = window.Telegram.WebApp;
 
-      if (!telegram) {
-        console.error('Telegram WebApp SDK is not available');
+    // Получение initDataUnsafe
+    const initDataUnsafe = telegram.initDataUnsafe;
+    let telegramId = null;
+
+    if (initDataUnsafe && initDataUnsafe.user) {
+      telegramId = initDataUnsafe.user.id;
+    } else {
+      console.error('Не удалось получить данные пользователя');
+    }
+
+    console.log('Telegram ID:', telegramId);
+
+    const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
+
+    async function fetchProducts() {
+      const response = await fetch(`${BACKEND_URL}/api/products`);
+      const products = await response.json();
+      const productsContainer = document.getElementById('products');
+      products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.className = 'product';
+        productDiv.innerHTML = `
+          <img src="${product[4]}" alt="${product[1]}">
+          <h3>${product[1]}</h3>
+          <p>${product[2]}</p>
+          <p>Цена: ${product[3]}</p>
+          <button onclick="addToCart(${product[0]})">Добавить в корзину</button>
+        `;
+        productsContainer.appendChild(productDiv);
+      });
+    }
+
+    const cartItems = [];
+    const cartItemsList = document.getElementById('cart-items');
+
+    function addToCart(productId) {
+      cartItems.push(productId);
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      cartItemsList.innerHTML = '';
+      cartItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `Товар ${item}`;
+        cartItemsList.appendChild(li);
+      });
+    }
+
+    async function checkout() {
+      if (!telegramId) {
+        alert('Не удалось получить ID пользователя');
         return;
       }
 
-      console.log('Telegram WebApp initialized:', telegram);
-
-      const initDataUnsafe = telegram.initDataUnsafe;
-      let telegramId = null;
-
-      if (initDataUnsafe && initDataUnsafe.user) {
-        telegramId = initDataUnsafe.user.id;
-        console.log('Telegram ID:', telegramId);
-      } else {
-        console.error('Не удалось получить данные пользователя');
-      }
-
-      const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
-
-      async function fetchProducts() {
-        try {
-          const response = await fetch(`${BACKEND_URL}/api/products`);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const products = await response.json();
-          console.log('Fetched products:', products);
-
-          const productsContainer = document.getElementById('products');
-          products.forEach(product => {
-            const productDiv = document.createElement('div');
-            productDiv.className = 'product';
-            productDiv.innerHTML = `
-              <img src="${product[4]}" alt="${product[1]}">
-              <h3>${product[1]}</h3>
-              <p>${product[2]}</p>
-              <p>Цена: ${product[3]}</p>
-              <button onclick="addToCart(${product[0]})">Добавить в корзину</button>
-            `;
-            productsContainer.appendChild(productDiv);
-          });
-        } catch (error) {
-          console.error('Error fetching products:', error);
-          alert('Не удалось загрузить продукты');
-        }
-      }
-
-      const cartItems = [];
-      const cartItemsList = document.getElementById('cart-items');
-
-      function addToCart(productId) {
-        cartItems.push(productId);
-        updateCartDisplay();
-      }
-
-      function updateCartDisplay() {
-        cartItemsList.innerHTML = '';
-        cartItems.forEach(item => {
-          const li = document.createElement('li');
-          li.textContent = `Товар ${item}`;
-          cartItemsList.appendChild(li);
+      const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+      const user = await response.json();
+      const totalCost = cartItems.reduce((sum, productId) => sum + parseFloat(document.querySelector(`.product[data-id="${productId}"] p`).textContent.split(': ')[1]), 0);
+      if (user[1] >= totalCost) {
+        const newBalance = user[1] - totalCost;
+        await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ balance: newBalance })
         });
+        await fetch(`${BACKEND_URL}/api/order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ telegramId, products: cartItems, totalCost })
+        });
+        alert('Заказ оформлен!');
+        cartItems.length = 0;
+        updateCartDisplay();
+        fetchOrderHistory();
+      } else {
+        alert('Недостаточно средств на счету!');
       }
+    }
 
-      async function checkout() {
-        if (!telegramId) {
-          alert('Не удалось получить ID пользователя');
-          return;
-        }
+    async function fetchOrderHistory() {
+      const response = await fetch(`${BACKEND_URL}/api/orders`);
+      const orders = await response.json();
+      const orderHistoryList = document.getElementById('order-history');
+      orderHistoryList.innerHTML = '';
+      orders.forEach(order => {
+        const li = document.createElement('li');
+        li.textContent = `Заказ: ${JSON.stringify(order)}`;
+        orderHistoryList.appendChild(li);
+      });
+    }
 
-        try {
-          const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-          const user = await response.json();
-          const totalCost = cartItems.reduce((sum, productId) => {
-            const productElement = document.querySelector(`.product h3`);
-            if (productElement) {
-              const priceText = productElement.nextElementSibling.textContent.split(': ')[1];
-              return sum + parseFloat(priceText);
-            }
-            return sum;
-          }, 0);
-
-          if (user[1] >= totalCost) {
-            const newBalance = user[1] - totalCost;
-            await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ balance: newBalance })
-            });
-            await fetch(`${BACKEND_URL}/api/order`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ telegramId, products: cartItems, totalCost })
-            });
-            alert('Заказ оформлен!');
-            cartItems.length = 0;
-            updateCartDisplay();
-            fetchOrderHistory();
-          } else {
-            alert('Недостаточно средств на счету!');
-          }
-        } catch (error) {
-          console.error('Error during checkout:', error);
-          alert('Ошибка при оформлении заказа');
-        }
-      }
-
-      async function fetchOrderHistory() {
-        try {
-          const response = await fetch(`${BACKEND_URL}/api/orders`);
-          const orders = await response.json();
-          const orderHistoryList = document.getElementById('order-history');
-          orderHistoryList.innerHTML = '';
-          orders.forEach(order => {
-            const li = document.createElement('li');
-            li.textContent = `Заказ: ${JSON.stringify(order)}`;
-            orderHistoryList.appendChild(li);
-          });
-        } catch (error) {
-          console.error('Error fetching order history:', error);
-          alert('Не удалось загрузить историю заказов');
-        }
-      }
-
-      fetchProducts();
-      fetchOrderHistory();
-    });
+    fetchProducts();
+    fetchOrderHistory();
   </script>
 </body>
 </html>
