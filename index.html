@@ -192,9 +192,15 @@
       }
       const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
       const user = await response.json();
+      if (!Array.isArray(user) || user.length !== 2) {
+        console.error('Неверный формат данных пользователя:', user);
+        alert('Ошибка при получении данных пользователя');
+        return;
+      }
+      const [userId, balance] = user;
       const totalCost = parseFloat(cartTotalElement.textContent);
-      if (user[1] >= totalCost) {
-        const newBalance = user[1] - totalCost;
+      if (parseFloat(balance) >= totalCost) {
+        const newBalance = parseFloat(balance) - totalCost;
         await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
           method: 'POST',
           headers: {
@@ -237,10 +243,23 @@
     }
 
     async function fetchUserBalance() {
-      if (telegramId) {
+      if (!telegramId) {
+        console.error('Не удалось получить ID пользователя');
+        return;
+      }
+      try {
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         const user = await response.json();
-        updateUserBalance(user[1]);
+        if (!Array.isArray(user) || user.length !== 2) {
+          console.error('Неверный формат данных пользователя:', user);
+          alert('Ошибка при получении данных пользователя');
+          return;
+        }
+        const [userId, balance] = user;
+        updateUserBalance(balance);
+      } catch (error) {
+        console.error('Ошибка при получении баланса:', error);
+        alert('Ошибка при получении баланса');
       }
     }
 
