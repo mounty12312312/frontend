@@ -225,7 +225,6 @@
           alert('Заказ оформлен!');
           cartItems = {};
           updateCartDisplay();
-          fetchOrderHistory();
           updateUserBalance(newBalance);
         } else {
           alert('Недостаточно средств на счету!');
@@ -312,17 +311,18 @@
       console.log('Элемент с id="user-balance":', userBalanceElement);
       if (userBalanceElement) {
         console.log('Элемент с id="user-balance" найден');
+        fetchUserBalance();
       } else {
         console.error('Элемент с id="user-balance" не найден');
       }
-      fetchUserBalance();
     });
 
     // Запуск функций после загрузки страницы
     window.onload = () => {
       setTimeout(() => {
         fetchProducts();
-        fetchOrderHistory();
+        // Закомментируем вызов fetchOrderHistory(), так как маршрут не существует
+        // fetchOrderHistory();
       }, 100); // Задержка 100 мс
     };
   </script>
