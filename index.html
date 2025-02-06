@@ -52,12 +52,11 @@
     <ul id="order-history"></ul>
   </div>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script async src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     // Инициализация Telegram Mini Apps SDK
     const telegram = window.Telegram.WebApp;
-    console.log('Telegram WebApp initialized:', window.Telegram.WebApp);
-
+    
     // Получение initDataUnsafe
     const initDataUnsafe = telegram.initDataUnsafe;
     let telegramId = null;
