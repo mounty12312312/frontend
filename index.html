@@ -167,7 +167,7 @@
       });
     }
 
-    const cartItems = {};
+    let cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
     const cartButton = document.getElementById('cart-button');
@@ -255,15 +255,12 @@
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
           }
            else {
-            console.log('Я провалился в нужный else');
-            alert('Заказ оформлен!');
-            console.log('Я пошел дальше');
-            //cartItems = {};
+            cartItems = {};
             updateCartDisplay();
             updateUserBalance(updateBalanceData.newBalance);
             fetchOrderHistory();
-            toggleCart();
-            console.log('Я пошел дальше'); // Автоматическое закрытие корзины
+            toggleCart(); // Автоматическое закрытие корзины
+            alert('Заказ оформлен!');
           }
         } else {
           alert('Недостаточно средств на счету!');
