@@ -237,15 +237,23 @@
     }
 
     async function fetchOrderHistory() {
-      const response = await fetch(`${BACKEND_URL}/api/orders`);
-      const orders = await response.json();
-      const orderHistoryList = document.getElementById('order-history');
-      orderHistoryList.innerHTML = '';
-      orders.forEach(order => {
-        const li = document.createElement('li');
-        li.textContent = `Заказ: ${JSON.stringify(order)}`;
-        orderHistoryList.appendChild(li);
-      });
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/orders`);
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        const orders = await response.json();
+        const orderHistoryList = document.getElementById('order-history');
+        orderHistoryList.innerHTML = '';
+        orders.forEach(order => {
+          const li = document.createElement('li');
+          li.textContent = `Заказ: ${JSON.stringify(order)}`;
+          orderHistoryList.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Ошибка при получении истории заказов:', error);
+        alert('Ошибка при получении истории заказов');
+      }
     }
 
     async function updateUserBalance(balance) {
@@ -254,7 +262,14 @@
       console.log('Текущее значение баланса:', userBalanceElement ? userBalanceElement.textContent : 'null');
 
       if (userBalanceElement) {
-        userBalanceElement.textContent = balance.toFixed(2);
+        // Преобразуем balance к числу
+        const numericBalance = parseFloat(balance);
+        if (isNaN(numericBalance)) {
+          console.error('Неверный формат баланса:', balance);
+          alert('Неверный формат баланса');
+          return;
+        }
+        userBalanceElement.textContent = numericBalance.toFixed(2);
         console.log('Новое значение баланса:', userBalanceElement.textContent);
       } else {
         console.error('Элемент с id="user-balance" не найден');
@@ -302,31 +317,6 @@
       }
       fetchUserBalance();
     });
-
-    // Дополнительная проверка элемента после обновления баланса
-    function checkAndUpdateBalance() {
-      if (userBalanceElement) {
-        console.log('Элемент с id="user-balance" найден:', userBalanceElement);
-        console.log('Текущее значение баланса:', userBalanceElement.textContent);
-      } else {
-        console.error('Элемент с id="user-balance" не найден');
-      }
-    }
-
-    // Добавим вызов проверки после обновления баланса
-    async function updateUserBalance(balance) {
-      console.log('Обновление баланса:', balance);
-      console.log('Элемент для обновления баланса:', userBalanceElement);
-      console.log('Текущее значение баланса:', userBalanceElement ? userBalanceElement.textContent : 'null');
-
-      if (userBalanceElement) {
-        userBalanceElement.textContent = balance.toFixed(2);
-        console.log('Новое значение баланса:', userBalanceElement.textContent);
-        checkAndUpdateBalance(); // Дополнительная проверка
-      } else {
-        console.error('Элемент с id="user-balance" не найден');
-      }
-    }
 
     // Запуск функций после загрузки страницы
     window.onload = () => {
