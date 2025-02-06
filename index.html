@@ -224,18 +224,24 @@
             },
             body: JSON.stringify({ balance: newBalance })
           });
-          await fetch(`${BACKEND_URL}/api/order`, {
+          const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ telegramId, products: cartItems, totalCost, date: new Date().toISOString() })
           });
-          alert('Заказ оформлен!');
-          cartItems = {};
-          updateCartDisplay();
-          updateUserBalance(newBalance);
-          fetchOrderHistory();
+          const orderData = await orderResponse.json();
+          if (orderData.success) {
+            alert('Заказ оформлен!');
+            cartItems = {};
+            updateCartDisplay();
+            updateUserBalance(newBalance);
+            fetchOrderHistory();
+            toggleCart(); // Автоматическое закрытие корзины
+          } else {
+            alert('Ошибка при оформлении заказа');
+          }
         } else {
           alert('Недостаточно средств на счету!');
         }
