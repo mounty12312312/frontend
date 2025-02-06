@@ -90,6 +90,10 @@
       padding: 2px 5px;
       cursor: pointer;
     }
+    .cart-total {
+      margin-top: 10px;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -106,7 +110,7 @@
   <div class="cart-container" id="cart-container">
     <h2>Корзина</h2>
     <ul id="cart-items"></ul>
-    <p>Сумма корзины: <span id="cart-total">0</span> руб.</p>
+    <div class="cart-total">Сумма корзины: <span id="cart-total">0</span> руб.</div>
     <button onclick="checkout()">Оплатить</button>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -190,38 +194,41 @@
         alert('Не удалось получить ID пользователя');
         return;
       }
-      const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-      const user = await response.json();
-      if (!Array.isArray(user) || user.length !== 2) {
-        console.error('Неверный формат данных пользователя:', user);
-        alert('Ошибка при получении данных пользователя');
-        return;
-      }
-      const [userId, balance] = user;
-      const totalCost = parseFloat(cartTotalElement.textContent);
-      if (parseFloat(balance) >= totalCost) {
-        const newBalance = parseFloat(balance) - totalCost;
-        await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ balance: newBalance })
-        });
-        await fetch(`${BACKEND_URL}/api/order`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ telegramId, products: cartItems, totalCost })
-        });
-        alert('Заказ оформлен!');
-        cartItems = {};
-        updateCartDisplay();
-        fetchOrderHistory();
-        updateUserBalance(newBalance);
-      } else {
-        alert('Недостаточно средств на счету!');
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+        const user = await response.json();
+        if (!Array.isArray(user) || user.length !== 2) {
+          throw new Error('Неверный формат данных пользователя');
+        }
+        const [userId, balance] = user;
+        const totalCost = parseFloat(cartTotalElement.textContent);
+        if (parseFloat(balance) >= totalCost) {
+          const newBalance = parseFloat(balance) - totalCost;
+          await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ balance: newBalance })
+          });
+          await fetch(`${BACKEND_URL}/api/order`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ telegramId, products: cartItems, totalCost })
+          });
+          alert('Заказ оформлен!');
+          cartItems = {};
+          updateCartDisplay();
+          fetchOrderHistory();
+          updateUserBalance(newBalance);
+        } else {
+          alert('Недостаточно средств на счету!');
+        }
+      } catch (error) {
+        console.error('Ошибка при оформлении заказа:', error);
+        alert('Ошибка при оформлении заказа');
       }
     }
 
@@ -251,9 +258,7 @@
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         const user = await response.json();
         if (!Array.isArray(user) || user.length !== 2) {
-          console.error('Неверный формат данных пользователя:', user);
-          alert('Ошибка при получении данных пользователя');
-          return;
+          throw new Error('Неверный формат данных пользователя');
         }
         const [userId, balance] = user;
         updateUserBalance(balance);
