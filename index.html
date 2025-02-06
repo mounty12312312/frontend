@@ -13,6 +13,16 @@
       margin: 0;
       padding: 0;
     }
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: white;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 10px;
+      text-align: center;
+    }
     .product {
       border: 1px solid #ccc;
       padding: 10px;
@@ -22,6 +32,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-top: 70px; /* Увеличено для отображения фиксированного заголовка */
     }
     .product img {
       width: 100%;
@@ -37,40 +48,41 @@
       width: 90%;
       max-width: 400px;
     }
+    .balance {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Мерч Самокат</h1>
-  <div id="products"></div>
-  <div class="cart">
-    <h2>Корзина</h2>
-    <ul id="cart-items"></ul>
-    <button onclick="checkout()">Оплатить</button>
+  <div class="header">
+    <h1>Мерч Самокат</h1>
+    <div class="cart">
+      <h2>Корзина</h2>
+      <ul id="cart-items"></ul>
+      <p>Сумма корзины: <span id="cart-total">0</span> руб.</p>
+      <p class="balance">Текущий баланс: <span id="user-balance">0</span> руб.</p>
+      <button onclick="checkout()">Оплатить</button>
+    </div>
   </div>
+  <div id="products"></div>
   <div class="order-history">
     <h2>История заказов</h2>
     <ul id="order-history"></ul>
   </div>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     // Инициализация Telegram Mini Apps SDK
     const telegram = window.Telegram.WebApp;
-
     // Получение initDataUnsafe
     const initDataUnsafe = telegram.initDataUnsafe;
     let telegramId = null;
-
     if (initDataUnsafe && initDataUnsafe.user) {
       telegramId = initDataUnsafe.user.id;
     } else {
       console.error('Не удалось получить данные пользователя');
     }
-
     console.log('Telegram ID:', telegramId);
-
     const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
-
     async function fetchProducts() {
       const response = await fetch(`${BACKEND_URL}/api/products`);
       const products = await response.json();
@@ -78,6 +90,7 @@
       products.forEach(product => {
         const productDiv = document.createElement('div');
         productDiv.className = 'product';
+        productDiv.setAttribute('data-id', product[0]);
         productDiv.innerHTML = `
           <img src="${product[4]}" alt="${product[1]}">
           <h3>${product[1]}</h3>
@@ -88,33 +101,33 @@
         productsContainer.appendChild(productDiv);
       });
     }
-
     const cartItems = [];
     const cartItemsList = document.getElementById('cart-items');
-
+    const cartTotalElement = document.getElementById('cart-total');
     function addToCart(productId) {
       cartItems.push(productId);
       updateCartDisplay();
     }
-
     function updateCartDisplay() {
       cartItemsList.innerHTML = '';
+      let totalCost = 0;
       cartItems.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `Товар ${item}`;
+        const price = parseFloat(document.querySelector(`.product[data-id="${item}"] p`).textContent.split(': ')[1]);
+        totalCost += price;
+        li.textContent = `Товар ${item} - ${price} руб.`;
         cartItemsList.appendChild(li);
       });
+      cartTotalElement.textContent = totalCost.toFixed(2);
     }
-
     async function checkout() {
       if (!telegramId) {
         alert('Не удалось получить ID пользователя');
         return;
       }
-
       const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
       const user = await response.json();
-      const totalCost = cartItems.reduce((sum, productId) => sum + parseFloat(document.querySelector(`.product[data-id="${productId}"] p`).textContent.split(': ')[1]), 0);
+      const totalCost = parseFloat(cartTotalElement.textContent);
       if (user[1] >= totalCost) {
         const newBalance = user[1] - totalCost;
         await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
@@ -135,11 +148,11 @@
         cartItems.length = 0;
         updateCartDisplay();
         fetchOrderHistory();
+        updateUserBalance(newBalance);
       } else {
         alert('Недостаточно средств на счету!');
       }
     }
-
     async function fetchOrderHistory() {
       const response = await fetch(`${BACKEND_URL}/api/orders`);
       const orders = await response.json();
@@ -151,9 +164,20 @@
         orderHistoryList.appendChild(li);
       });
     }
-
+    async function updateUserBalance(balance) {
+      const userBalanceElement = document.getElementById('user-balance');
+      userBalanceElement.textContent = balance.toFixed(2);
+    }
+    async function fetchUserBalance() {
+      if (telegramId) {
+        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+        const user = await response.json();
+        updateUserBalance(user[1]);
+      }
+    }
     fetchProducts();
     fetchOrderHistory();
+    fetchUserBalance();
   </script>
 </body>
 </html>
