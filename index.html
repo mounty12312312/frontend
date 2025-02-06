@@ -151,7 +151,7 @@
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
     const cartButton = document.getElementById('cart-button');
-    const userBalanceElement = document.getElementById('user-balance');
+    let userBalanceElement = document.getElementById('user-balance');
 
     function addToCart(productId, productName, productPrice) {
       if (!cartItems[productId]) {
@@ -251,9 +251,14 @@
     async function updateUserBalance(balance) {
       console.log('Обновление баланса:', balance);
       console.log('Элемент для обновления баланса:', userBalanceElement);
-      console.log('Текущее значение баланса:', userBalanceElement.textContent);
-      userBalanceElement.textContent = balance.toFixed(2);
-      console.log('Новое значение баланса:', userBalanceElement.textContent);
+      console.log('Текущее значение баланса:', userBalanceElement ? userBalanceElement.textContent : 'null');
+
+      if (userBalanceElement) {
+        userBalanceElement.textContent = balance.toFixed(2);
+        console.log('Новое значение баланса:', userBalanceElement.textContent);
+      } else {
+        console.error('Элемент с id="user-balance" не найден');
+      }
     }
 
     async function fetchUserBalance() {
@@ -285,9 +290,51 @@
       cartContainer.classList.toggle('show');
     }
 
-    fetchProducts();
-    fetchOrderHistory();
-    fetchUserBalance();
+    // Дополнительная проверка после загрузки DOM
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded event triggered');
+      userBalanceElement = document.getElementById('user-balance');
+      console.log('Элемент с id="user-balance":', userBalanceElement);
+      if (userBalanceElement) {
+        console.log('Элемент с id="user-balance" найден');
+      } else {
+        console.error('Элемент с id="user-balance" не найден');
+      }
+      fetchUserBalance();
+    });
+
+    // Дополнительная проверка элемента после обновления баланса
+    function checkAndUpdateBalance() {
+      if (userBalanceElement) {
+        console.log('Элемент с id="user-balance" найден:', userBalanceElement);
+        console.log('Текущее значение баланса:', userBalanceElement.textContent);
+      } else {
+        console.error('Элемент с id="user-balance" не найден');
+      }
+    }
+
+    // Добавим вызов проверки после обновления баланса
+    async function updateUserBalance(balance) {
+      console.log('Обновление баланса:', balance);
+      console.log('Элемент для обновления баланса:', userBalanceElement);
+      console.log('Текущее значение баланса:', userBalanceElement ? userBalanceElement.textContent : 'null');
+
+      if (userBalanceElement) {
+        userBalanceElement.textContent = balance.toFixed(2);
+        console.log('Новое значение баланса:', userBalanceElement.textContent);
+        checkAndUpdateBalance(); // Дополнительная проверка
+      } else {
+        console.error('Элемент с id="user-balance" не найден');
+      }
+    }
+
+    // Запуск функций после загрузки страницы
+    window.onload = () => {
+      setTimeout(() => {
+        fetchProducts();
+        fetchOrderHistory();
+      }, 100); // Задержка 100 мс
+    };
   </script>
 </body>
 </html>
