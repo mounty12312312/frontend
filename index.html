@@ -254,7 +254,7 @@
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
           }
-           if (responce.success) {
+           else {
             console.log('Я провалился в нужный else');
             alert('Заказ оформлен!');
             console.log('Я пошел дальше');
