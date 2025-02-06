@@ -243,8 +243,26 @@
 
     function toggleCart(event) {
       const cartContainer = document.getElementById('cart-container');
-      cartContainer.style.top = `${event.clientY + 10}px`;
-      cartContainer.style.left = `${event.clientX - 150}px`; // Позиционирование относительно клика
+      const buttonRect = event.target.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
+
+      // Позиционирование корзины под кнопкой "Корзина"
+      let top = buttonRect.bottom + 10;
+      let left = buttonRect.left;
+
+      // Проверка выхода за пределы экрана по вертикали
+      if (top + cartContainer.offsetHeight > windowHeight) {
+        top = buttonRect.top - cartContainer.offsetHeight - 10;
+      }
+
+      // Проверка выхода за пределы экрана по горизонтали
+      if (left + cartContainer.offsetWidth > windowWidth) {
+        left = windowWidth - cartContainer.offsetWidth - 10;
+      }
+
+      cartContainer.style.top = `${top}px`;
+      cartContainer.style.left = `${left}px`;
       cartContainer.classList.toggle('show');
     }
 
