@@ -253,7 +253,8 @@
           console.log('Ответ от сервера при добавлении заказа:', orderData);
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
-          } else {
+          }
+           if (responce.success) {
             console.log('Я провалился в нужный else');
             alert('Заказ оформлен!');
             console.log('Я пошел дальше');
