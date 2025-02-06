@@ -254,12 +254,15 @@
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
           } else {
+            console.log('Я провалился в нужный else');
             alert('Заказ оформлен!');
+            console.log('Я пошел дальше');
             cartItems = {};
             updateCartDisplay();
             updateUserBalance(updateBalanceData.newBalance);
             fetchOrderHistory();
-            toggleCart(); // Автоматическое закрытие корзины
+            toggleCart();
+            console.log('Я пошел дальше'); // Автоматическое закрытие корзины
           }
         } else {
           alert('Недостаточно средств на счету!');
