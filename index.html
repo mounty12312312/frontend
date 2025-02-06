@@ -253,16 +253,13 @@
           console.log('Ответ от сервера при добавлении заказа:', orderData);
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
-          }
-          if (orderData.success) {
+          } else {
             alert('Заказ оформлен!');
             cartItems = {};
             updateCartDisplay();
             updateUserBalance(updateBalanceData.newBalance);
             fetchOrderHistory();
             toggleCart(); // Автоматическое закрытие корзины
-          } else {
-            throw new Error('Ошибка при оформлении заказа');
           }
         } else {
           alert('Недостаточно средств на счету!');
