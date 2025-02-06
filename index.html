@@ -258,7 +258,12 @@
       }
       try {
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+        console.log('Ответ от сервера:', response);
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
         const user = await response.json();
+        console.log('Данные пользователя:', user);
         if (!Array.isArray(user) || user.length !== 2) {
           throw new Error('Неверный формат данных пользователя');
         }
