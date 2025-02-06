@@ -238,6 +238,7 @@
             body: JSON.stringify({ balance: newBalance })
           });
           const updateBalanceData = await updateBalanceResponse.json();
+          console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
           if (!updateBalanceResponse.ok) {
             throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
           }
@@ -249,6 +250,7 @@
             body: JSON.stringify({ telegramId, products: cartItems, totalCost, date: new Date().toISOString() })
           });
           const orderData = await orderResponse.json();
+          console.log('Ответ от сервера при добавлении заказа:', orderData);
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
           }
@@ -280,6 +282,7 @@
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
         const orders = await response.json();
+        console.log('Данные истории заказов:', orders);
         const historyItemsList = document.getElementById('history-items');
         historyItemsList.innerHTML = '';
         orders.forEach(order => {
