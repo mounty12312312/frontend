@@ -59,6 +59,14 @@
     .cart-container.show, .history-container.show, .loading-container.show {
       display: block;
     }
+    .loading-container {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 18px;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
     .product {
       border: 1px solid #ccc;
       padding: 10px;
@@ -99,13 +107,6 @@
     }
     .back-button:hover {
       text-decoration: underline;
-    }
-    .loading-container {
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 18px;
-      padding: 20px;
-      border-radius: 5px;
     }
   </style>
 </head>
@@ -236,6 +237,7 @@
             },
             body: JSON.stringify({ balance: newBalance })
           });
+          const updateBalanceData = await updateBalanceResponse.json();
           if (!updateBalanceResponse.ok) {
             throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
           }
@@ -254,7 +256,7 @@
             alert('Заказ оформлен!');
             cartItems = {};
             updateCartDisplay();
-            updateUserBalance(newBalance);
+            updateUserBalance(updateBalanceData.newBalance);
             fetchOrderHistory();
             toggleCart(); // Автоматическое закрытие корзины
           } else {
