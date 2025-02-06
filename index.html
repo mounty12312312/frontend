@@ -100,7 +100,7 @@
   <div class="header">
     <h1>Мерч Самокат</h1>
     <div class="balance">Текущий баланс: <span id="user-balance">0</span> руб.</div>
-    <button class="cart-button" onclick="toggleCart()">Корзина</button>
+    <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина: 0 рублей</button>
   </div>
   <div id="products"></div>
   <div class="order-history">
@@ -150,6 +150,7 @@
     const cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
+    const cartButton = document.getElementById('cart-button');
 
     function addToCart(productId, productName, productPrice) {
       if (!cartItems[productId]) {
@@ -187,6 +188,7 @@
         totalCost += item.quantity * item.price;
       }
       cartTotalElement.textContent = totalCost.toFixed(2);
+      cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
     }
 
     async function checkout() {
