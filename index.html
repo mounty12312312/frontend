@@ -68,20 +68,19 @@
       text-align: center;
     }
     #products {
-      font-size: 0; /* Убираем пробелы между inline-block элементами */
+      display: flex; /* Используем Flexbox */
+      flex-wrap: wrap; /* Разрешаем перенос строк */
+      justify-content: space-between; /* Равномерно распределяем элементы */
+      gap: 20px; /* Устанавливаем отступы между элементами */
+      padding: 10px; /* Добавляем внутренние отступы */
       width: 100%;
-      text-align: center; /* Центрируем продукты */
     }
     .product {
       border: 1px solid #ccc;
       padding: 10px;
-      margin: 10px 2.5%; /* Уменьшаем отступы по бокам */
-      width: 45%; /* Оставляем 45% ширины */
+      width: calc(50% - 20px); /* Оставляем место для отступов */
       max-width: 400px;
-      display: inline-block; /* Отображение в одну строку */
-      vertical-align: top; /* Выравнивание по верху */
       box-sizing: border-box; /* Учитываем padding и border в ширине */
-      font-size: 16px; /* Восстанавливаем размер шрифта */
     }
     .product img {
       max-height: 150px; /* Ограничиваем высоту изображений */
