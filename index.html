@@ -197,6 +197,7 @@
       flex-grow: 1;
       margin-left: 10px;
       margin-right: 10px;
+      font-size: 14px;
     }
     .order-total {
       font-weight: bold;
@@ -467,35 +468,39 @@
     }
 
     function addOrderToHistory(order) {
-      const historyItemsList = document.getElementById('history-items');
-      // Создаем новый элемент для заказа
-      const orderContainer = document.createElement('div');
-      orderContainer.className = 'order-container';
+  const historyItemsList = document.getElementById('history-items');
+  // Создаем новый элемент для заказа
+  const orderContainer = document.createElement('div');
+  orderContainer.className = 'order-container';
 
-      const orderDate = document.createElement('div');
-      orderDate.className = 'order-date';
-      orderDate.textContent = new Date(order.date).toLocaleDateString();
+  // Дата заказа
+  const orderDate = document.createElement('div');
+  orderDate.className = 'order-date';
+  orderDate.textContent = new Date(order.date).toLocaleDateString();
 
-      const orderProducts = document.createElement('div');
-      orderProducts.className = 'order-products';
-      for (const productId in order.products) {
-        const product = order.products[productId];
-        const productItem = document.createElement('div');
-        productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
-        orderProducts.appendChild(productItem);
-      }
+  // Товары в заказе
+  const orderProducts = document.createElement('div');
+  orderProducts.className = 'order-products';
+  for (const productId in order.products) {
+    const product = order.products[productId];
+    const productItem = document.createElement('div');
+    productItem.textContent = `${product.name}, ${product.quantity} шт.`; // Обновленный формат
+    orderProducts.appendChild(productItem);
+  }
 
-      const orderTotal = document.createElement('div');
-      orderTotal.className = 'order-total';
-      orderTotal.textContent = `${order.totalCost} баллов`;
+  // Общая сумма заказа
+  const orderTotal = document.createElement('div');
+  orderTotal.className = 'order-total';
+  orderTotal.textContent = `${order.totalCost} баллов`;
 
-      orderContainer.appendChild(orderDate);
-      orderContainer.appendChild(orderProducts);
-      orderContainer.appendChild(orderTotal);
+  // Добавляем элементы в контейнер заказа
+  orderContainer.appendChild(orderDate);
+  orderContainer.appendChild(orderProducts);
+  orderContainer.appendChild(orderTotal);
 
-      // Добавляем элемент в начало списка
-      historyItemsList.prepend(orderContainer);
-    }
+  // Добавляем заказ в начало списка
+  historyItemsList.prepend(orderContainer);
+}
 
     let orders = [];
     let currentPage = 1;
