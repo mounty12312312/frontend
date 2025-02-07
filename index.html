@@ -72,7 +72,7 @@
       flex-wrap: wrap; /* Разрешаем перенос строк */
       justify-content: space-between; /* Равномерно распределяем элементы */
       gap: 20px; /* Устанавливаем отступы между элементами */
-      padding: 80px 10px 10px; /* Отступ сверху для заголовка */
+      padding: 50px 0px 0px; /* Отступ сверху для заголовка */
       width: 100%;
     }
     .product {
@@ -141,21 +141,20 @@
 </head>
 <body>
   <div class="header">
-    <h1>Мерч Самокат</h1>
-    <div class="balance">Текущий баланс: <span id="user-balance">0</span> руб.</div>
-    <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина: 0 рублей</button>
-    <button class="history-button" id="history-button" onclick="toggleHistory()">История покупок</button>
+    <div class="balance">Баланс: <span id="user-balance">0</span> баллов</div>
+    <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина: 0 баллов</button>
+    <button class="history-button" id="history-button" onclick="toggleHistory()">История</button>
   </div>
   <div id="products"></div>
   <div class="cart-container" id="cart-container">
     <h2>Корзина</h2>
     <ul id="cart-items"></ul>
-    <div class="cart-total">Сумма корзины: <span id="cart-total">0</span> руб.</div>
+    <div class="cart-total">Сумма корзины: <span id="cart-total">0</span> баллов</div>
     <button onclick="checkout()">Оплатить</button>
     <button class="back-button" onclick="toggleCart()">Назад</button>
   </div>
   <div class="history-container" id="history-container">
-    <h2>История покупок</h2>
+    <h2>История</h2>
     <ul id="history-items"></ul>
     <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
     <button class="back-button" onclick="toggleHistory()">Назад</button>
@@ -176,7 +175,7 @@
       console.error('Не удалось получить данные пользователя');
     }
     console.log('Telegram ID:', telegramId);
-    const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
+    const BACKEND_URL = 'backend-ten-swart-36.vercel.app';
 
     let cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
