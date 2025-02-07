@@ -116,12 +116,19 @@
       text-align: right;
     }
     .back-button {
-      margin-top: 10px;
       cursor: pointer;
       background: none;
       border: none;
       font-size: 16px;
       color: #007bff;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      padding: 5px 10px;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .back-button:hover {
       text-decoration: underline;
@@ -133,6 +140,7 @@
     .history-container {
       max-height: 400px; /* Ограничение высоты истории */
       overflow-y: auto; /* Добавление скролла */
+      position: relative;
     }
     .load-more-button {
       margin-top: 10px;
@@ -446,7 +454,7 @@
       for (const productId in order.products) {
         const product = order.products[productId];
         const productItem = document.createElement('div');
-        productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
+        productItem.textContent = `${product.name}, ${product.quantity} шт.`;
         orderProducts.appendChild(productItem);
       }
 
@@ -500,7 +508,7 @@
           for (const productId in order.products) {
             const product = order.products[productId];
             const productItem = document.createElement('div');
-            productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
+            productItem.textContent = `${product.name}, ${product.quantity} шт.`;
             orderProducts.appendChild(productItem);
           }
 
