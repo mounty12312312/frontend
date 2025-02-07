@@ -145,6 +145,28 @@
     .load-more-button:hover {
       text-decoration: underline;
     }
+    .order-container {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-direction: row;
+      background-color: #f9f9f9;
+    }
+    .order-date {
+      font-weight: bold;
+    }
+    .order-products {
+      flex-grow: 1;
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+    .order-total {
+      font-weight: bold;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -168,7 +190,7 @@
   </div>
   <div class="history-container" id="history-container">
     <h2>История</h2>
-    <ul id="history-items"></ul>
+    <div id="history-items"></div>
     <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
     <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
@@ -412,15 +434,32 @@
     function addOrderToHistory(order) {
       const historyItemsList = document.getElementById('history-items');
       // Создаем новый элемент для заказа
-      const li = document.createElement('li');
-      li.className = 'history-item';
-      li.innerHTML = `
-        <span>${new Date(order.date).toLocaleDateString()}</span>
-        <span>${JSON.stringify(order.products)}</span>
-        <span>${order.totalCost} баллов</span>
-      `;
+      const orderContainer = document.createElement('div');
+      orderContainer.className = 'order-container';
+
+      const orderDate = document.createElement('div');
+      orderDate.className = 'order-date';
+      orderDate.textContent = new Date(order.date).toLocaleDateString();
+
+      const orderProducts = document.createElement('div');
+      orderProducts.className = 'order-products';
+      for (const productId in order.products) {
+        const product = order.products[productId];
+        const productItem = document.createElement('div');
+        productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
+        orderProducts.appendChild(productItem);
+      }
+
+      const orderTotal = document.createElement('div');
+      orderTotal.className = 'order-total';
+      orderTotal.textContent = `${order.totalCost} баллов`;
+
+      orderContainer.appendChild(orderDate);
+      orderContainer.appendChild(orderProducts);
+      orderContainer.appendChild(orderTotal);
+
       // Добавляем элемент в начало списка
-      historyItemsList.prepend(li);
+      historyItemsList.prepend(orderContainer);
     }
 
     let orders = [];
@@ -449,14 +488,31 @@
       const pageOrders = orders.slice(start, end);
       if (pageOrders.length > 0) {
         pageOrders.forEach(order => {
-          const li = document.createElement('li');
-          li.className = 'history-item';
-          li.innerHTML = `
-            <span>${new Date(order.date).toLocaleDateString()}</span>
-            <span>${JSON.stringify(order.products)}</span>
-            <span>${order.totalCost} баллов</span>
-          `;
-          historyItemsList.appendChild(li);
+          const orderContainer = document.createElement('div');
+          orderContainer.className = 'order-container';
+
+          const orderDate = document.createElement('div');
+          orderDate.className = 'order-date';
+          orderDate.textContent = new Date(order.date).toLocaleDateString();
+
+          const orderProducts = document.createElement('div');
+          orderProducts.className = 'order-products';
+          for (const productId in order.products) {
+            const product = order.products[productId];
+            const productItem = document.createElement('div');
+            productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
+            orderProducts.appendChild(productItem);
+          }
+
+          const orderTotal = document.createElement('div');
+          orderTotal.className = 'order-total';
+          orderTotal.textContent = `${order.totalCost} баллов`;
+
+          orderContainer.appendChild(orderDate);
+          orderContainer.appendChild(orderProducts);
+          orderContainer.appendChild(orderTotal);
+
+          historyItemsList.appendChild(orderContainer);
         });
       }
       const loadMoreButton = document.getElementById('load-more-button');
