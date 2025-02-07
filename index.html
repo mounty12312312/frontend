@@ -150,8 +150,8 @@
 <body>
   <div class="header">
     <div class="balance">
-      Баланс: <span id="user-balance-text">Нет баланса</span>
-      <span id="user-balance-value" style="display: none;">0 баллов</span>
+      Баланс: <span id="user-balance-value" style="display: none;">0 баллов</span>
+      <span id="user-balance-text" style="display: none;">Нет баланса</span>
     </div>
     <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина</button>
     <button class="history-button" id="history-button" onclick="toggleHistory()">История</button>
@@ -160,8 +160,10 @@
   <div class="cart-container" id="cart-container">
     <h2>Корзина</h2>
     <ul id="cart-items"></ul>
-    <div class="cart-total">Сумма корзины: <span id="cart-total">0</span> баллов</div>
     <button onclick="checkout()">Оплатить</button>
+    <div class="cart-total" id="cart-total-container" style="display: none;">
+      Сумма корзины: <span id="cart-total">0</span> баллов
+    </div>
     <button class="back-button" onclick="toggleCart()">Назад</button>
   </div>
   <div class="history-container" id="history-container">
@@ -190,9 +192,10 @@
     let cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
+    const cartTotalContainer = document.getElementById('cart-total-container');
     const cartButton = document.getElementById('cart-button');
-    let userBalanceText = document.getElementById('user-balance-text');
     let userBalanceValue = document.getElementById('user-balance-value');
+    let userBalanceText = document.getElementById('user-balance-text');
     const loadingContainer = document.getElementById('loading-container');
 
     function showLoading() {
@@ -260,26 +263,27 @@
 
     function updateUserBalance(balance) {
       console.log('Обновление баланса:', balance);
-      console.log('Элемент для обновления баланса:', userBalanceText);
-      console.log('Текущее значение баланса:', userBalanceText ? userBalanceText.textContent : 'null');
+      console.log('Элемент для обновления баланса:', userBalanceValue);
+      console.log('Текущее значение баланса:', userBalanceValue ? userBalanceValue.textContent : 'null');
 
-      if (userBalanceText && userBalanceValue) {
+      if (userBalanceValue && userBalanceText) {
         if (balance === null || balance === undefined) {
+          userBalanceText.style.display = 'block';
           userBalanceText.textContent = 'Нет баланса';
           userBalanceValue.style.display = 'none';
         } else {
-          userBalanceText.textContent = 'Баланс:';
-          userBalanceValue.textContent = `${balance} баллов`;
+          userBalanceText.style.display = 'none';
           userBalanceValue.style.display = 'block';
+          userBalanceValue.textContent = `${balance} баллов`;
         }
       } else {
-        console.error('Элементы с id="user-balance-text" или id="user-balance-value" не найдены');
+        console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
       }
 
       // Обновление баланса в корзине
       const totalCost = parseFloat(cartTotalElement.textContent);
       if (totalCost > 0) {
-        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
       } else {
         cartButton.textContent = 'Корзина';
       }
@@ -313,7 +317,7 @@
         li.className = 'cart-item';
         li.innerHTML = `
           <span>${item.name}</span>
-          <span>${item.quantity} x ${item.price} руб.</span>
+          <span>${item.quantity} x ${item.price} баллов</span>
           <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
           <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
         `;
@@ -324,9 +328,11 @@
 
       // Обновление кнопки корзины
       if (totalCost > 0) {
-        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
+        cartTotalContainer.style.display = 'block';
       } else {
         cartButton.textContent = 'Корзина';
+        cartTotalContainer.style.display = 'none';
       }
     }
 
@@ -411,7 +417,7 @@
       li.innerHTML = `
         <span>${new Date(order.date).toLocaleDateString()}</span>
         <span>${JSON.stringify(order.products)}</span>
-        <span>${order.totalCost} руб.</span>
+        <span>${order.totalCost} баллов</span>
       `;
       // Добавляем элемент в начало списка
       historyItemsList.prepend(li);
@@ -448,7 +454,7 @@
           li.innerHTML = `
             <span>${new Date(order.date).toLocaleDateString()}</span>
             <span>${JSON.stringify(order.products)}</span>
-            <span>${order.totalCost} руб.</span>
+            <span>${order.totalCost} баллов</span>
           `;
           historyItemsList.appendChild(li);
         });
@@ -483,15 +489,15 @@
     // Дополнительная проверка после загрузки DOM
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event triggered');
-      userBalanceText = document.getElementById('user-balance-text');
       userBalanceValue = document.getElementById('user-balance-value');
-      console.log('Элемент с id="user-balance-text":', userBalanceText);
+      userBalanceText = document.getElementById('user-balance-text');
       console.log('Элемент с id="user-balance-value":', userBalanceValue);
-      if (userBalanceText && userBalanceValue) {
-        console.log('Элементы с id="user-balance-text" и id="user-balance-value" найдены');
+      console.log('Элемент с id="user-balance-text":', userBalanceText);
+      if (userBalanceValue && userBalanceText) {
+        console.log('Элементы с id="user-balance-value" и id="user-balance-text" найдены');
         fetchUserBalance();
       } else {
-        console.error('Элементы с id="user-balance-text" или id="user-balance-value" не найдены');
+        console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
       }
     });
 
