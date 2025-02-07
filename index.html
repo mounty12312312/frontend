@@ -540,7 +540,7 @@
           for (const productId in order.products) {
             const product = order.products[productId];
             const productItem = document.createElement('div');
-            productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
+            productItem.textContent = `${product.name}, ${product.quantity} шт.`;
             orderProducts.appendChild(productItem);
           }
 
