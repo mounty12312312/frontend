@@ -67,17 +67,24 @@
       border-radius: 5px;
       text-align: center;
     }
+    #products {
+      font-size: 0; /* Убираем пробелы между inline-block элементами */
+      width: 100%;
+      text-align: center; /* Центрируем продукты */
+    }
     .product {
       border: 1px solid #ccc;
       padding: 10px;
-      margin: 10px;
-      width: 45%; /* Изменено на 45% для отображения двух продуктов в строке */
+      margin: 10px 2.5%; /* Уменьшаем отступы по бокам */
+      width: 45%; /* Оставляем 45% ширины */
       max-width: 400px;
-      display: inline-block; /* Изменено на inline-block */
+      display: inline-block; /* Отображение в одну строку */
       vertical-align: top; /* Выравнивание по верху */
-      margin-top: 70px; /* Увеличено для отображения фиксированного заголовка */
+      box-sizing: border-box; /* Учитываем padding и border в ширине */
+      font-size: 16px; /* Восстанавливаем размер шрифта */
     }
     .product img {
+      max-height: 150px; /* Ограничиваем высоту изображений */
       width: 100%;
       height: auto;
     }
