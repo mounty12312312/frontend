@@ -118,14 +118,27 @@
     .back-button:hover {
       text-decoration: underline;
     }
-    @keyframes slideDown {
+    /* Анимация появления (выпадения из центра) */
+@keyframes fadeIn {
   from {
-    transform: translateY(-100%);
+    transform: scale(0.8);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* Анимация исчезновения (закрытия) */
+@keyframes fadeOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
   }
 }
 
@@ -133,21 +146,28 @@
 .history-container {
   display: none;
   position: fixed;
-  top: 50px; /* Начальная позиция чуть ниже заголовка */
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%) scale(0.8); /* Начальная позиция (меньший размер и центр) */
   width: 300px;
+  max-height: 400px; /* Ограничение высоты для скролла */
+  overflow-y: auto; /* Добавляем скролл */
   padding: 10px;
   background-color: white;
   border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 1001;
-  animation: slideDown 0.3s ease-out; /* Применяем анимацию */
+  animation: fadeIn 0.3s ease-out forwards; /* Появление */
 }
 
 .cart-container.show,
 .history-container.show {
   display: block;
+}
+
+.cart-container.hide,
+.history-container.hide {
+  animation: fadeOut 0.3s ease-in forwards; /* Исчезновение */
 }
     .load-more-button {
       margin-top: 10px;
@@ -547,33 +567,49 @@
   const cartContainer = document.getElementById('cart-container');
   const historyContainer = document.getElementById('history-container');
 
-  // Сначала убираем класс 'show', чтобы анимация сработала заново
-  cartContainer.classList.remove('show');
+  if (cartContainer.classList.contains('show')) {
+    // Если корзина уже открыта, закрываем её с анимацией
+    cartContainer.classList.remove('show');
+    cartContainer.classList.add('hide');
 
-  // Задержка для перезапуска анимации
-  setTimeout(() => {
-    cartContainer.classList.toggle('show');
-  }, 10);
+    // Скрываем элемент после завершения анимации
+    setTimeout(() => {
+      cartContainer.classList.remove('hide');
+    }, 300); // Время анимации (0.3s)
+  } else {
+    // Если корзина закрыта, открываем её
+    cartContainer.classList.add('show');
+  }
 
   // Скрываем историю заказов, если она открыта
   historyContainer.classList.remove('show');
+  historyContainer.classList.remove('hide');
 }
 
 function toggleHistory() {
   const historyContainer = document.getElementById('history-container');
   const cartContainer = document.getElementById('cart-container');
 
-  // Сначала убираем класс 'show', чтобы анимация сработала заново
-  historyContainer.classList.remove('show');
+  if (historyContainer.classList.contains('show')) {
+    // Если история уже открыта, закрываем её с анимацией
+    historyContainer.classList.remove('show');
+    historyContainer.classList.add('hide');
 
-  // Задержка для перезапуска анимации
-  setTimeout(() => {
-    historyContainer.classList.toggle('show');
-  }, 10);
+    // Скрываем элемент после завершения анимации
+    setTimeout(() => {
+      historyContainer.classList.remove('hide');
+    }, 300); // Время анимации (0.3s)
+  } else {
+    // Если история закрыта, открываем её
+    historyContainer.classList.add('show');
+  }
 
   // Скрываем корзину, если она открыта
   cartContainer.classList.remove('show');
+  cartContainer.classList.remove('hide');
 }
+
+    
     // Дополнительная проверка после загрузки DOM
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event triggered');
