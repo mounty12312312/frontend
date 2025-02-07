@@ -50,7 +50,7 @@
       font-size: 14px;
       color: #555;
     }
-    .cart-container, .history-container, .loading-container {
+    .loading-container {
       display: none;
       position: fixed;
       background-color: white;
@@ -64,16 +64,8 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
-    .cart-container.show, .history-container.show, .loading-container.show {
+    .loading-container.show {
       display: block;
-    }
-    .loading-container {
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 18px;
-      padding: 20px;
-      border-radius: 5px;
-      text-align: center;
     }
     #products {
       display: flex; /* Используем Flexbox */
@@ -126,14 +118,37 @@
     .back-button:hover {
       text-decoration: underline;
     }
-    .cart-container {
-      max-height: 400px; /* Ограничение высоты корзины */
-      overflow-y: auto; /* Добавление скролла */
-    }
-    .history-container {
-      max-height: 400px; /* Ограничение высоты истории */
-      overflow-y: auto; /* Добавление скролла */
-    }
+    @keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cart-container,
+.history-container {
+  display: none;
+  position: fixed;
+  top: 50px; /* Начальная позиция чуть ниже заголовка */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  animation: slideDown 0.3s ease-out; /* Применяем анимацию */
+}
+
+.cart-container.show,
+.history-container.show {
+  display: block;
+}
     .load-more-button {
       margin-top: 10px;
       cursor: pointer;
@@ -529,19 +544,36 @@
     }
 
     function toggleCart() {
-      const cartContainer = document.getElementById('cart-container');
-      cartContainer.classList.toggle('show');
-      const historyContainer = document.getElementById('history-container');
-      historyContainer.classList.remove('show');
-    }
+  const cartContainer = document.getElementById('cart-container');
+  const historyContainer = document.getElementById('history-container');
 
-    function toggleHistory() {
-      const historyContainer = document.getElementById('history-container');
-      historyContainer.classList.toggle('show');
-      const cartContainer = document.getElementById('cart-container');
-      cartContainer.classList.remove('show');
-    }
+  // Сначала убираем класс 'show', чтобы анимация сработала заново
+  cartContainer.classList.remove('show');
 
+  // Задержка для перезапуска анимации
+  setTimeout(() => {
+    cartContainer.classList.toggle('show');
+  }, 10);
+
+  // Скрываем историю заказов, если она открыта
+  historyContainer.classList.remove('show');
+}
+
+function toggleHistory() {
+  const historyContainer = document.getElementById('history-container');
+  const cartContainer = document.getElementById('cart-container');
+
+  // Сначала убираем класс 'show', чтобы анимация сработала заново
+  historyContainer.classList.remove('show');
+
+  // Задержка для перезапуска анимации
+  setTimeout(() => {
+    historyContainer.classList.toggle('show');
+  }, 10);
+
+  // Скрываем корзину, если она открыта
+  cartContainer.classList.remove('show');
+}
     // Дополнительная проверка после загрузки DOM
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event triggered');
