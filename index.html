@@ -63,6 +63,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      max-height: 80vh; /* Ограничиваем максимальную высоту контейнера */
+      overflow-y: auto; /* Добавляем скролл */
     }
     .cart-container.show, .history-container.show, .loading-container.show {
       display: block;
@@ -134,12 +136,12 @@
       text-decoration: underline;
     }
     .cart-container {
-      max-height: 400px; /* Ограничение высоты корзины */
-      overflow-y: auto; /* Добавление скролла */
+      max-height: 80vh; /* Ограничиваем максимальную высоту контейнера */
+      overflow-y: auto; /* Добавляем скролл */
     }
     .history-container {
-      max-height: 400px; /* Ограничение высоты истории */
-      overflow-y: auto; /* Добавление скролла */
+      max-height: 80vh; /* Ограничиваем максимальную высоту контейнера */
+      overflow-y: auto; /* Добавляем скролл */
       position: relative;
     }
     .load-more-button {
@@ -170,10 +172,16 @@
       flex-grow: 1;
       margin-left: 10px;
       margin-right: 10px;
+      font-size: 14px; /* Уменьшаем шрифт для содержимого заказа */
     }
     .order-total {
       font-weight: bold;
       text-align: right;
+    }
+    .history-items {
+      max-height: calc(100% - 60px); /* Вычитаем высоту кнопок */
+      overflow-y: auto; /* Добавляем скролл */
+      margin-bottom: 20px; /* Отступ для кнопок */
     }
   </style>
 </head>
@@ -198,7 +206,7 @@
   </div>
   <div class="history-container" id="history-container">
     <h2>История</h2>
-    <div id="history-items"></div>
+    <div class="history-items" id="history-items"></div>
     <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
     <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
