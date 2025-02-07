@@ -72,7 +72,7 @@
       flex-wrap: wrap; /* Разрешаем перенос строк */
       justify-content: space-between; /* Равномерно распределяем элементы */
       gap: 20px; /* Устанавливаем отступы между элементами */
-      padding: 10px; /* Добавляем внутренние отступы */
+      padding: 80px 10px 10px; /* Отступ сверху для заголовка */
       width: 100%;
     }
     .product {
@@ -81,11 +81,15 @@
       width: calc(50% - 20px); /* Оставляем место для отступов */
       max-width: 400px;
       box-sizing: border-box; /* Учитываем padding и border в ширине */
+      display: flex;
+      flex-direction: column; /* Выравниваем содержимое по вертикали */
+      align-items: center; /* Центрируем содержимое */
     }
     .product img {
-      max-height: 150px; /* Ограничиваем высоту изображений */
-      width: 100%;
-      height: auto;
+      width: 100%; /* Изображение занимает всю ширину блока */
+      height: auto; /* Сохраняем пропорции */
+      object-fit: cover; /* Обрезаем изображение, если оно не помещается */
+      max-height: 200px; /* Максимальная высота изображения */
     }
     .cart-item, .history-item {
       display: flex;
