@@ -71,11 +71,10 @@
       border: 1px solid #ccc;
       padding: 10px;
       margin: 10px;
-      width: 90%;
+      width: 45%; /* Изменено на 45% для отображения двух продуктов в строке */
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      display: inline-block; /* Изменено на inline-block */
+      vertical-align: top; /* Выравнивание по верху */
       margin-top: 70px; /* Увеличено для отображения фиксированного заголовка */
     }
     .product img {
@@ -108,6 +107,25 @@
     .back-button:hover {
       text-decoration: underline;
     }
+    .cart-container {
+      max-height: 400px; /* Ограничение высоты корзины */
+      overflow-y: auto; /* Добавление скролла */
+    }
+    .history-container {
+      max-height: 400px; /* Ограничение высоты истории */
+      overflow-y: auto; /* Добавление скролла */
+    }
+    .load-more-button {
+      margin-top: 10px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #007bff;
+    }
+    .load-more-button:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +146,7 @@
   <div class="history-container" id="history-container">
     <h2>История покупок</h2>
     <ul id="history-items"></ul>
+    <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
     <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
   <div class="loading-container" id="loading-container">
@@ -148,31 +167,74 @@
     console.log('Telegram ID:', telegramId);
     const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
 
-    async function fetchProducts() {
-      const response = await fetch(`${BACKEND_URL}/api/products`);
-      const products = await response.json();
-      const productsContainer = document.getElementById('products');
-      products.forEach(product => {
-        const productDiv = document.createElement('div');
-        productDiv.className = 'product';
-        productDiv.setAttribute('data-id', product[0]);
-        productDiv.innerHTML = `
-          <img src="${product[4]}" alt="${product[1]}">
-          <h3>${product[1]}</h3>
-          <p>${product[2]}</p>
-          <p>Цена: ${product[3]}</p>
-          <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
-        `;
-        productsContainer.appendChild(productDiv);
-      });
-    }
-
     let cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
     const cartButton = document.getElementById('cart-button');
     let userBalanceElement = document.getElementById('user-balance');
     const loadingContainer = document.getElementById('loading-container');
+
+    function showLoading() {
+      loadingContainer.classList.add('show');
+    }
+
+    function hideLoading() {
+      loadingContainer.classList.remove('show');
+    }
+
+    async function fetchProducts() {
+      try {
+        showLoading(); // Показываем плашку "Подождите..."
+        const response = await fetch(`${BACKEND_URL}/api/products`);
+        const products = await response.json();
+        const productsContainer = document.getElementById('products');
+        products.forEach(product => {
+          const productDiv = document.createElement('div');
+          productDiv.className = 'product';
+          productDiv.setAttribute('data-id', product[0]);
+          productDiv.innerHTML = `
+            <img src="${product[4]}" alt="${product[1]}">
+            <h3>${product[1]}</h3>
+            <p>${product[2]}</p>
+            <p>Цена: ${product[3]}</p>
+            <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
+          `;
+          productsContainer.appendChild(productDiv);
+        });
+      } catch (error) {
+        console.error('Ошибка при загрузке продуктов:', error);
+        alert('Ошибка при загрузке продуктов');
+      } finally {
+        hideLoading(); // Скрываем плашку "Подождите..."
+      }
+    }
+
+    async function fetchUserBalance() {
+      if (!telegramId) {
+        console.error('Не удалось получить ID пользователя');
+        return;
+      }
+      try {
+        showLoading(); // Показываем плашку "Подождите..."
+        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+        console.log('Ответ от сервера:', response);
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        const user = await response.json();
+        console.log('Данные пользователя:', user);
+        if (!Array.isArray(user) || user.length !== 2) {
+          throw new Error('Неверный формат данных пользователя');
+        }
+        const [userId, balance] = user;
+        updateUserBalance(balance);
+      } catch (error) {
+        console.error('Ошибка при получении баланса:', error);
+        alert('Ошибка при получении баланса');
+      } finally {
+        hideLoading(); // Скрываем плашку "Подождите..."
+      }
+    }
 
     function addToCart(productId, productName, productPrice) {
       if (!cartItems[productId]) {
@@ -254,21 +316,30 @@
           if (!orderResponse.ok) {
             throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
           }
-           else {
+          if (orderData.success) {
+            alert('Заказ оформлен!');
             cartItems = {};
             updateCartDisplay();
             updateUserBalance(updateBalanceData.newBalance);
             fetchOrderHistory();
             toggleCart(); // Автоматическое закрытие корзины
-            alert('Заказ оформлен!');
+          } else {
+            throw new Error('Ошибка при оформлении заказа');
           }
         } else {
           alert('Недостаточно средств на счету!');
         }
-      }  finally {
+      } catch (error) {
+        console.error('Ошибка при оформлении заказа:', error);
+        alert('Ошибка при оформлении заказа');
+      } finally {
         hideLoading(); // Скрываем сообщение "Подождите"
       }
     }
+
+    let orders = [];
+    let currentPage = 1;
+    const ordersPerPage = 5;
 
     async function fetchOrderHistory() {
       try {
@@ -276,11 +347,23 @@
         if (!response.ok) {
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
-        const orders = await response.json();
-        console.log('Данные истории заказов:', orders);
-        const historyItemsList = document.getElementById('history-items');
-        historyItemsList.innerHTML = '';
-        orders.forEach(order => {
+        const allOrders = await response.json();
+        orders = allOrders.sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по дате
+        displayOrders(currentPage);
+      } catch (error) {
+        console.error('Ошибка при получении истории заказов:', error);
+        alert('Ошибка при получении истории заказов');
+      }
+    }
+
+    function displayOrders(page) {
+      const historyItemsList = document.getElementById('history-items');
+      const start = (page - 1) * ordersPerPage;
+      const end = page * ordersPerPage;
+      const pageOrders = orders.slice(start, end);
+
+      if (pageOrders.length > 0) {
+        pageOrders.forEach(order => {
           const li = document.createElement('li');
           li.className = 'history-item';
           li.innerHTML = `
@@ -290,10 +373,19 @@
           `;
           historyItemsList.appendChild(li);
         });
-      } catch (error) {
-        console.error('Ошибка при получении истории заказов:', error);
-        alert('Ошибка при получении истории заказов');
       }
+
+      const loadMoreButton = document.getElementById('load-more-button');
+      if (end >= orders.length) {
+        loadMoreButton.style.display = 'none'; // Скрываем кнопку, если больше нет заказов
+      } else {
+        loadMoreButton.style.display = 'block'; // Показываем кнопку, если есть еще заказы
+      }
+    }
+
+    function loadMoreOrders() {
+      currentPage++;
+      displayOrders(currentPage);
     }
 
     async function updateUserBalance(balance) {
@@ -316,30 +408,6 @@
       }
     }
 
-    async function fetchUserBalance() {
-      if (!telegramId) {
-        console.error('Не удалось получить ID пользователя');
-        return;
-      }
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        console.log('Ответ от сервера:', response);
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        const user = await response.json();
-        console.log('Данные пользователя:', user);
-        if (!Array.isArray(user) || user.length !== 2) {
-          throw new Error('Неверный формат данных пользователя');
-        }
-        const [userId, balance] = user;
-        updateUserBalance(balance);
-      } catch (error) {
-        console.error('Ошибка при получении баланса:', error);
-        alert('Ошибка при получении баланса');
-      }
-    }
-
     function toggleCart() {
       const cartContainer = document.getElementById('cart-container');
       cartContainer.classList.toggle('show');
@@ -352,14 +420,6 @@
       historyContainer.classList.toggle('show');
       const cartContainer = document.getElementById('cart-container');
       cartContainer.classList.remove('show');
-    }
-
-    function showLoading() {
-      loadingContainer.classList.add('show');
-    }
-
-    function hideLoading() {
-      loadingContainer.classList.remove('show');
     }
 
     // Дополнительная проверка после загрузки DOM
