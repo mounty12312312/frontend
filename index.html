@@ -333,9 +333,6 @@
       }
       if (orderData.success) {
         alert('Заказ оформлен!');
-        cartItems = {};
-        updateCartDisplay();
-        updateUserBalance(updateBalanceData.newBalance);
 
         // Добавляем заказ в историю на фронтенде
         const newOrder = {
@@ -344,7 +341,9 @@
           totalCost: totalCost
         };
         addOrderToHistory(newOrder); // Добавляем заказ в начало списка
-
+        cartItems = {};
+        updateCartDisplay();
+        updateUserBalance(updateBalanceData.newBalance);
         toggleCart(); // Автоматическое закрытие корзины
       } else {
         throw new Error('Ошибка при оформлении заказа');
