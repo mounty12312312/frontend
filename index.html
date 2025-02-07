@@ -12,8 +12,6 @@
       align-items: center;
       margin: 0;
       padding: 0;
-      height: 100vh;
-      overflow: hidden;
     }
     .header {
       position: fixed;
@@ -59,18 +57,15 @@
       border: 1px solid #ccc;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       z-index: 1001;
-      width: 100%;
+      width: 300px;
       padding: 10px;
       text-align: left;
-      top: -100%;
-      left: 0;
-      transition: top 0.3s ease-in-out;
-      overflow-y: auto;
-      max-height: 80vh;
-      border-radius: 0 0 10px 10px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
     .cart-container.show, .history-container.show, .loading-container.show {
-      top: 0;
+      display: block;
     }
     .loading-container {
       background-color: rgba(0, 0, 0, 0.8);
@@ -79,11 +74,6 @@
       padding: 20px;
       border-radius: 5px;
       text-align: center;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1002;
     }
     #products {
       display: flex; /* Используем Flexbox */
@@ -92,8 +82,6 @@
       gap: 20px; /* Устанавливаем отступы между элементами */
       padding: 80px 0px 0px; /* Отступ сверху для заголовка */
       width: 100%;
-      overflow-y: auto; /* Добавляем скролл */
-      height: calc(100vh - 80px); /* Вычитаем высоту заголовка */
     }
     .product {
       border: 1px solid #ccc;
@@ -128,31 +116,23 @@
       text-align: right;
     }
     .back-button {
+      margin-top: 10px;
       cursor: pointer;
       background: none;
       border: none;
       font-size: 16px;
       color: #007bff;
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      padding: 5px 10px;
-      background-color: #f9f9f9;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .back-button:hover {
       text-decoration: underline;
     }
     .cart-container {
-      max-height: 80vh; /* Ограничиваем максимальную высоту контейнера */
-      overflow-y: auto; /* Добавляем скролл */
+      max-height: 400px; /* Ограничение высоты корзины */
+      overflow-y: auto; /* Добавление скролла */
     }
     .history-container {
-      max-height: 80vh; /* Ограничиваем максимальную высоту контейнера */
-      overflow-y: auto; /* Добавляем скролл */
-      position: relative;
+      max-height: 400px; /* Ограничение высоты истории */
+      overflow-y: auto; /* Добавление скролла */
     }
     .load-more-button {
       margin-top: 10px;
@@ -161,8 +141,6 @@
       border: none;
       font-size: 16px;
       color: #007bff;
-      display: block;
-      margin-left: 10px;
     }
     .load-more-button:hover {
       text-decoration: underline;
@@ -184,16 +162,10 @@
       flex-grow: 1;
       margin-left: 10px;
       margin-right: 10px;
-      font-size: 14px; /* Уменьшаем шрифт для содержимого заказа */
     }
     .order-total {
       font-weight: bold;
       text-align: right;
-    }
-    .history-items {
-      max-height: calc(100% - 60px); /* Вычитаем высоту кнопок */
-      overflow-y: auto; /* Добавляем скролл */
-      margin-bottom: 20px; /* Отступ для кнопок */
     }
   </style>
 </head>
@@ -218,8 +190,9 @@
   </div>
   <div class="history-container" id="history-container">
     <h2>История</h2>
-    <div class="history-items" id="history-items"></div>
+    <div id="history-items"></div>
     <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
+    <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
   <div class="loading-container" id="loading-container">
     Подождите...
@@ -454,7 +427,7 @@
         console.error('Ошибка при оформлении заказа:', error);
         alert('Ошибка при оформлении заказа');
       } finally {
-        hideLoading(); // Скрываем плашку "Подождите"
+        hideLoading(); // Скрываем сообщение "Подождите"
       }
     }
 
@@ -473,7 +446,7 @@
       for (const productId in order.products) {
         const product = order.products[productId];
         const productItem = document.createElement('div');
-        productItem.textContent = `${product.name}, ${product.quantity} шт.`;
+        productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
         orderProducts.appendChild(productItem);
       }
 
@@ -527,7 +500,7 @@
           for (const productId in order.products) {
             const product = order.products[productId];
             const productItem = document.createElement('div');
-            productItem.textContent = `${product.name}, ${product.quantity} шт.`;
+            productItem.textContent = `${product.name}: ${product.quantity} x ${product.price} баллов`;
             orderProducts.appendChild(productItem);
           }
 
