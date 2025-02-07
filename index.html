@@ -286,66 +286,94 @@
     }
 
     async function checkout() {
-      if (!telegramId) {
-        alert('Не удалось получить ID пользователя');
-        return;
-      }
-      try {
-        showLoading(); // Показываем сообщение "Подождите"
-        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        const user = await response.json();
-        console.log('Данные пользователя:', user);
-        if (!Array.isArray(user) || user.length !== 2) {
-          throw new Error('Неверный формат данных пользователя');
-        }
-        const [userId, balance] = user;
-        const totalCost = parseFloat(cartTotalElement.textContent);
-        if (parseFloat(balance) >= totalCost) {
-          const newBalance = parseFloat(balance) - totalCost;
-          const updateBalanceResponse = await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ balance: newBalance })
-          });
-          const updateBalanceData = await updateBalanceResponse.json();
-          console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
-          if (!updateBalanceResponse.ok) {
-            throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
-          }
-          const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ telegramId, products: cartItems, totalCost, date: new Date().toISOString() })
-          });
-          const orderData = await orderResponse.json();
-          console.log('Ответ от сервера при добавлении заказа:', orderData);
-          if (!orderResponse.ok) {
-            throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
-          }
-          if (orderData.success) {
-            alert('Заказ оформлен!');
-            cartItems = {};
-            updateCartDisplay();
-            updateUserBalance(updateBalanceData.newBalance);
-            fetchOrderHistory();
-            toggleCart(); // Автоматическое закрытие корзины
-          } else {
-            throw new Error('Ошибка при оформлении заказа');
-          }
-        } else {
-          alert('Недостаточно средств на счету!');
-        }
-      } catch (error) {
-        console.error('Ошибка при оформлении заказа:', error);
-        alert('Ошибка при оформлении заказа');
-      } finally {
-        hideLoading(); // Скрываем сообщение "Подождите"
-      }
+  if (!telegramId) {
+    alert('Не удалось получить ID пользователя');
+    return;
+  }
+  try {
+    showLoading(); // Показываем сообщение "Подождите"
+    const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+    const user = await response.json();
+    console.log('Данные пользователя:', user);
+    if (!Array.isArray(user) || user.length !== 2) {
+      throw new Error('Неверный формат данных пользователя');
     }
+    const [userId, balance] = user;
+    const totalCost = parseFloat(cartTotalElement.textContent);
+    if (parseFloat(balance) >= totalCost) {
+      const newBalance = parseFloat(balance) - totalCost;
+      const updateBalanceResponse = await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ balance: newBalance })
+      });
+      const updateBalanceData = await updateBalanceResponse.json();
+      console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
+      if (!updateBalanceResponse.ok) {
+        throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
+      }
+      const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          telegramId,
+          products: cartItems,
+          totalCost,
+          date: new Date().toISOString()
+        })
+      });
+      const orderData = await orderResponse.json();
+      console.log('Ответ от сервера при добавлении заказа:', orderData);
+      if (!orderResponse.ok) {
+        throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
+      }
+      if (orderData.success) {
+        alert('Заказ оформлен!');
+        cartItems = {};
+        updateCartDisplay();
+        updateUserBalance(updateBalanceData.newBalance);
+
+        // Добавляем заказ в историю на фронтенде
+        const newOrder = {
+          date: new Date().toISOString(),
+          products: cartItems,
+          totalCost: totalCost
+        };
+        addOrderToHistory(newOrder); // Добавляем заказ в начало списка
+
+        toggleCart(); // Автоматическое закрытие корзины
+      } else {
+        throw new Error('Ошибка при оформлении заказа');
+      }
+    } else {
+      alert('Недостаточно средств на счету!');
+    }
+  } catch (error) {
+    console.error('Ошибка при оформлении заказа:', error);
+    alert('Ошибка при оформлении заказа');
+  } finally {
+    hideLoading(); // Скрываем сообщение "Подождите"
+  }
+}
+function addOrderToHistory(order) {
+  const historyItemsList = document.getElementById('history-items');
+
+  // Создаем новый элемент для заказа
+  const li = document.createElement('li');
+  li.className = 'history-item';
+  li.innerHTML = `
+    <span>${new Date(order.date).toLocaleDateString()}</span>
+    <span>${JSON.stringify(order.products)}</span>
+    <span>${order.totalCost} руб.</span>
+  `;
+
+  // Добавляем элемент в начало списка
+  historyItemsList.prepend(li);
+}
 
     let orders = [];
     let currentPage = 1;
