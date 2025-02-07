@@ -41,6 +41,14 @@
     }
     .balance {
       margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .balance #user-balance-value {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #555;
     }
     .cart-container, .history-container, .loading-container {
       display: none;
@@ -76,16 +84,16 @@
       width: 100%;
     }
     .product {
-  border: 1px solid #ccc;
-  padding: 10px;
-  width: calc(50% - 30px); /* Уменьшаем ширину, чтобы учесть отступы */
-  max-width: 400px;
-  box-sizing: border-box; /* Учитываем padding и border в ширине */
-  display: flex;
-  flex-direction: column; /* Выравниваем содержимое по вертикали */
-  align-items: center; /* Центрируем содержимое */
-  margin: 10px; /* Добавляем отступы по бокам */
-}
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: calc(50% - 30px); /* Уменьшаем ширину, чтобы учесть отступы */
+      max-width: 400px;
+      box-sizing: border-box; /* Учитываем padding и border в ширине */
+      display: flex;
+      flex-direction: column; /* Выравниваем содержимое по вертикали */
+      align-items: center; /* Центрируем содержимое */
+      margin: 10px; /* Добавляем отступы по бокам */
+    }
     .product img {
       width: 100%; /* Изображение занимает всю ширину блока */
       height: auto; /* Сохраняем пропорции */
@@ -141,8 +149,11 @@
 </head>
 <body>
   <div class="header">
-    <div class="balance">Баланс: <span id="user-balance">0</span> баллов</div>
-    <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина: 0 баллов</button>
+    <div class="balance">
+      Баланс: <span id="user-balance-text">Нет баланса</span>
+      <span id="user-balance-value" style="display: none;">0 баллов</span>
+    </div>
+    <button class="cart-button" id="cart-button" onclick="toggleCart()">Корзина</button>
     <button class="history-button" id="history-button" onclick="toggleHistory()">История</button>
   </div>
   <div id="products"></div>
@@ -176,12 +187,12 @@
     }
     console.log('Telegram ID:', telegramId);
     const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
-
     let cartItems = {};
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
     const cartButton = document.getElementById('cart-button');
-    let userBalanceElement = document.getElementById('user-balance');
+    let userBalanceText = document.getElementById('user-balance-text');
+    let userBalanceValue = document.getElementById('user-balance-value');
     const loadingContainer = document.getElementById('loading-container');
 
     function showLoading() {
@@ -241,8 +252,36 @@
       } catch (error) {
         console.error('Ошибка при получении баланса:', error);
         alert('Ошибка при получении баланса');
+        updateUserBalance(null);
       } finally {
         hideLoading(); // Скрываем плашку "Подождите..."
+      }
+    }
+
+    function updateUserBalance(balance) {
+      console.log('Обновление баланса:', balance);
+      console.log('Элемент для обновления баланса:', userBalanceText);
+      console.log('Текущее значение баланса:', userBalanceText ? userBalanceText.textContent : 'null');
+
+      if (userBalanceText && userBalanceValue) {
+        if (balance === null || balance === undefined) {
+          userBalanceText.textContent = 'Нет баланса';
+          userBalanceValue.style.display = 'none';
+        } else {
+          userBalanceText.textContent = 'Баланс:';
+          userBalanceValue.textContent = `${balance} баллов`;
+          userBalanceValue.style.display = 'block';
+        }
+      } else {
+        console.error('Элементы с id="user-balance-text" или id="user-balance-value" не найдены');
+      }
+
+      // Обновление баланса в корзине
+      const totalCost = parseFloat(cartTotalElement.textContent);
+      if (totalCost > 0) {
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
+      } else {
+        cartButton.textContent = 'Корзина';
       }
     }
 
@@ -282,97 +321,101 @@
         totalCost += item.quantity * item.price;
       }
       cartTotalElement.textContent = totalCost.toFixed(2);
-      cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
+
+      // Обновление кнопки корзины
+      if (totalCost > 0) {
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} рублей`;
+      } else {
+        cartButton.textContent = 'Корзина';
+      }
     }
 
     async function checkout() {
-  if (!telegramId) {
-    alert('Не удалось получить ID пользователя');
-    return;
-  }
-  try {
-    showLoading(); // Показываем сообщение "Подождите"
-    const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-    const user = await response.json();
-    console.log('Данные пользователя:', user);
-    if (!Array.isArray(user) || user.length !== 2) {
-      throw new Error('Неверный формат данных пользователя');
+      if (!telegramId) {
+        alert('Не удалось получить ID пользователя');
+        return;
+      }
+      try {
+        showLoading(); // Показываем сообщение "Подождите"
+        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
+        const user = await response.json();
+        console.log('Данные пользователя:', user);
+        if (!Array.isArray(user) || user.length !== 2) {
+          throw new Error('Неверный формат данных пользователя');
+        }
+        const [userId, balance] = user;
+        const totalCost = parseFloat(cartTotalElement.textContent);
+        if (parseFloat(balance) >= totalCost) {
+          const newBalance = parseFloat(balance) - totalCost;
+          const updateBalanceResponse = await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ balance: newBalance })
+          });
+          const updateBalanceData = await updateBalanceResponse.json();
+          console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
+          if (!updateBalanceResponse.ok) {
+            throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
+          }
+          const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              telegramId,
+              products: cartItems,
+              totalCost,
+              date: new Date().toISOString()
+            })
+          });
+          const orderData = await orderResponse.json();
+          console.log('Ответ от сервера при добавлении заказа:', orderData);
+          if (!orderResponse.ok) {
+            throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
+          }
+          if (orderData.success) {
+            alert('Заказ оформлен!');
+            // Добавляем заказ в историю на фронтенде
+            const newOrder = {
+              date: new Date().toISOString(),
+              products: cartItems,
+              totalCost: totalCost
+            };
+            addOrderToHistory(newOrder); // Добавляем заказ в начало списка
+            cartItems = {};
+            updateCartDisplay();
+            updateUserBalance(updateBalanceData.newBalance);
+            toggleCart(); // Автоматическое закрытие корзины
+          } else {
+            throw new Error('Ошибка при оформлении заказа');
+          }
+        } else {
+          alert('Недостаточно средств на счету!');
+        }
+      } catch (error) {
+        console.error('Ошибка при оформлении заказа:', error);
+        alert('Ошибка при оформлении заказа');
+      } finally {
+        hideLoading(); // Скрываем сообщение "Подождите"
+      }
     }
-    const [userId, balance] = user;
-    const totalCost = parseFloat(cartTotalElement.textContent);
-    if (parseFloat(balance) >= totalCost) {
-      const newBalance = parseFloat(balance) - totalCost;
-      const updateBalanceResponse = await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ balance: newBalance })
-      });
-      const updateBalanceData = await updateBalanceResponse.json();
-      console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
-      if (!updateBalanceResponse.ok) {
-        throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
-      }
-      const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          telegramId,
-          products: cartItems,
-          totalCost,
-          date: new Date().toISOString()
-        })
-      });
-      const orderData = await orderResponse.json();
-      console.log('Ответ от сервера при добавлении заказа:', orderData);
-      if (!orderResponse.ok) {
-        throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
-      }
-      if (orderData.success) {
-        alert('Заказ оформлен!');
 
-        // Добавляем заказ в историю на фронтенде
-        const newOrder = {
-          date: new Date().toISOString(),
-          products: cartItems,
-          totalCost: totalCost
-        };
-        addOrderToHistory(newOrder); // Добавляем заказ в начало списка
-        cartItems = {};
-        updateCartDisplay();
-        updateUserBalance(updateBalanceData.newBalance);
-        toggleCart(); // Автоматическое закрытие корзины
-      } else {
-        throw new Error('Ошибка при оформлении заказа');
-      }
-    } else {
-      alert('Недостаточно средств на счету!');
+    function addOrderToHistory(order) {
+      const historyItemsList = document.getElementById('history-items');
+      // Создаем новый элемент для заказа
+      const li = document.createElement('li');
+      li.className = 'history-item';
+      li.innerHTML = `
+        <span>${new Date(order.date).toLocaleDateString()}</span>
+        <span>${JSON.stringify(order.products)}</span>
+        <span>${order.totalCost} руб.</span>
+      `;
+      // Добавляем элемент в начало списка
+      historyItemsList.prepend(li);
     }
-  } catch (error) {
-    console.error('Ошибка при оформлении заказа:', error);
-    alert('Ошибка при оформлении заказа');
-  } finally {
-    hideLoading(); // Скрываем сообщение "Подождите"
-  }
-}
-function addOrderToHistory(order) {
-  const historyItemsList = document.getElementById('history-items');
-
-  // Создаем новый элемент для заказа
-  const li = document.createElement('li');
-  li.className = 'history-item';
-  li.innerHTML = `
-    <span>${new Date(order.date).toLocaleDateString()}</span>
-    <span>${JSON.stringify(order.products)}</span>
-    <span>${order.totalCost} руб.</span>
-  `;
-
-  // Добавляем элемент в начало списка
-  historyItemsList.prepend(li);
-}
 
     let orders = [];
     let currentPage = 1;
@@ -398,7 +441,6 @@ function addOrderToHistory(order) {
       const start = (page - 1) * ordersPerPage;
       const end = page * ordersPerPage;
       const pageOrders = orders.slice(start, end);
-
       if (pageOrders.length > 0) {
         pageOrders.forEach(order => {
           const li = document.createElement('li');
@@ -411,7 +453,6 @@ function addOrderToHistory(order) {
           historyItemsList.appendChild(li);
         });
       }
-
       const loadMoreButton = document.getElementById('load-more-button');
       if (end >= orders.length) {
         loadMoreButton.style.display = 'none'; // Скрываем кнопку, если больше нет заказов
@@ -423,26 +464,6 @@ function addOrderToHistory(order) {
     function loadMoreOrders() {
       currentPage++;
       displayOrders(currentPage);
-    }
-
-    async function updateUserBalance(balance) {
-      console.log('Обновление баланса:', balance);
-      console.log('Элемент для обновления баланса:', userBalanceElement);
-      console.log('Текущее значение баланса:', userBalanceElement ? userBalanceElement.textContent : 'null');
-
-      if (userBalanceElement) {
-        // Преобразуем balance к числу
-        const numericBalance = parseFloat(balance);
-        if (isNaN(numericBalance)) {
-          console.error('Неверный формат баланса:', balance);
-          alert('Неверный формат баланса');
-          return;
-        }
-        userBalanceElement.textContent = numericBalance.toFixed(2);
-        console.log('Новое значение баланса:', userBalanceElement.textContent);
-      } else {
-        console.error('Элемент с id="user-balance" не найден');
-      }
     }
 
     function toggleCart() {
@@ -462,13 +483,15 @@ function addOrderToHistory(order) {
     // Дополнительная проверка после загрузки DOM
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event triggered');
-      userBalanceElement = document.getElementById('user-balance');
-      console.log('Элемент с id="user-balance":', userBalanceElement);
-      if (userBalanceElement) {
-        console.log('Элемент с id="user-balance" найден');
+      userBalanceText = document.getElementById('user-balance-text');
+      userBalanceValue = document.getElementById('user-balance-value');
+      console.log('Элемент с id="user-balance-text":', userBalanceText);
+      console.log('Элемент с id="user-balance-value":', userBalanceValue);
+      if (userBalanceText && userBalanceValue) {
+        console.log('Элементы с id="user-balance-text" и id="user-balance-value" найдены');
         fetchUserBalance();
       } else {
-        console.error('Элемент с id="user-balance" не найден');
+        console.error('Элементы с id="user-balance-text" или id="user-balance-value" не найдены');
       }
     });
 
