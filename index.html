@@ -59,7 +59,7 @@
       border: 1px solid #ccc;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       z-index: 1001;
-      width: 100%;
+      width: 90%;
       max-width: 400px;
       padding: 10px;
       text-align: left;
@@ -69,9 +69,10 @@
       transition: top 0.3s ease-in-out;
       overflow-y: auto;
       max-height: 80vh;
+      border-radius: 10px 10px 0 0;
     }
     .cart-container.show, .history-container.show, .loading-container.show {
-      top: 20%;
+      top: 10%;
     }
     .loading-container {
       background-color: rgba(0, 0, 0, 0.8);
@@ -625,8 +626,8 @@
         return;
       }
 
-      if (yDiff > 0) {
-        // Свайп вниз
+      if (yDiff < 0) {
+        // Свайп вверх
         toggleHistory();
       }
 
