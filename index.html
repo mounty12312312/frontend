@@ -12,6 +12,8 @@
       align-items: center;
       margin: 0;
       padding: 0;
+      background-color: white;
+      color: black;
     }
     .header {
       position: fixed;
@@ -252,6 +254,7 @@
   <script>
     // Инициализация Telegram Mini Apps SDK
     const telegram = window.Telegram.WebApp;
+    telegram.expand();
     // Получение initDataUnsafe
     const initDataUnsafe = telegram.initDataUnsafe;
     let telegramId = null;
@@ -668,7 +671,15 @@ function toggleHistory() {
       console.log('Элемент с id="user-balance-text":', userBalanceText);
       if (userBalanceValue && userBalanceText) {
         console.log('Элементы с id="user-balance-value" и id="user-balance-text" найдены');
-        fetchUserBalance();
+        Promise.all([fetchUserBalance(), fetchProducts()])
+          .then(() => {
+            updateCartDisplay();
+            fetchOrderHistory();
+          })
+          .catch(error => {
+            console.error('Ошибка при загрузке данных:', error);
+            alert('Ошибка при загрузке данных');
+          });
       } else {
         console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
       }
