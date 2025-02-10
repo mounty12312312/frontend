@@ -662,28 +662,20 @@ function toggleHistory() {
 }
 
     
-    // Дополнительная проверка после загрузки DOM
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded event triggered');
-      userBalanceValue = document.getElementById('user-balance-value');
-      userBalanceText = document.getElementById('user-balance-text');
-      console.log('Элемент с id="user-balance-value":', userBalanceValue);
-      console.log('Элемент с id="user-balance-text":', userBalanceText);
-      if (userBalanceValue && userBalanceText) {
-        console.log('Элементы с id="user-balance-value" и id="user-balance-text" найдены');
-        Promise.all([fetchUserBalance(), fetchProducts()])
-          .then(() => {
-            updateCartDisplay();
-            fetchOrderHistory();
-          })
-          .catch(error => {
-            console.error('Ошибка при загрузке данных:', error);
-            alert('Ошибка при загрузке данных');
-          });
-      } else {
-        console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
-      }
-    });
+   // Дополнительная проверка после загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+console.log('DOMContentLoaded event triggered');
+userBalanceValue = document.getElementById('user-balance-value');
+userBalanceText = document.getElementById('user-balance-text');
+console.log('Элемент с id="user-balance-value":', userBalanceValue);
+console.log('Элемент с id="user-balance-text":', userBalanceText);
+if (userBalanceValue && userBalanceText) {
+console.log('Элементы с id="user-balance-value" и id="user-balance-text" найдены');
+fetchUserBalance();
+} else {
+console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
+}
+});
 
     // Запуск функций после загрузки страницы
     window.onload = () => {
