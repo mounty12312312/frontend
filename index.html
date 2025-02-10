@@ -660,6 +660,7 @@ function toggleHistory() {
       setTimeout(() => {
         fetchProducts();
         fetchOrderHistory();
+        updateCartDisplay()
       }, 100); // Задержка 100 мс
     };
   </script>
