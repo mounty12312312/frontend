@@ -367,32 +367,57 @@
     }
 
     function updateCartDisplay() {
-      cartItemsList.innerHTML = '';
-      let totalCost = 0;
-      for (const productId in cartItems) {
-        const item = cartItems[productId];
-        const li = document.createElement('li');
-        li.className = 'cart-item';
-        li.innerHTML = `
-          <span>${item.name}</span>
-          <span>${item.quantity} x ${item.price} баллов</span>
-          <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
-          <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
-        `;
-        cartItemsList.appendChild(li);
-        totalCost += item.quantity * item.price;
-      }
-      cartTotalElement.textContent = totalCost.toFixed(2);
+  cartItemsList.innerHTML = ''; // Очищаем список товаров в корзине
+  let totalCost = 0;
 
-      // Обновление кнопки корзины
-      if (totalCost > 0) {
-        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
-        cartTotalContainer.style.display = 'block';
-      } else {
-        cartButton.textContent = 'Корзина';
-        cartTotalContainer.style.display = 'none';
-      }
+  if (Object.keys(cartItems).length === 0) {
+    // Если корзина пуста
+    const noItemsMessage = document.createElement('p');
+    noItemsMessage.textContent = 'Нет товаров в корзине';
+    noItemsMessage.style.textAlign = 'center';
+    noItemsMessage.style.color = '#888';
+    cartItemsList.appendChild(noItemsMessage);
+
+    // Скрываем кнопку "Оплатить"
+    const checkoutButton = document.querySelector('#cart-container button[onclick="checkout()"]');
+    if (checkoutButton) {
+      checkoutButton.style.display = 'none';
     }
+  } else {
+    // Если корзина не пуста
+    for (const productId in cartItems) {
+      const item = cartItems[productId];
+      const li = document.createElement('li');
+      li.className = 'cart-item';
+      li.innerHTML = `
+        <span>${item.name}</span>
+        <span>${item.quantity} x ${item.price} баллов</span>
+        <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
+        <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
+      `;
+      cartItemsList.appendChild(li);
+      totalCost += item.quantity * item.price;
+    }
+
+    // Показываем кнопку "Оплатить"
+    const checkoutButton = document.querySelector('#cart-container button[onclick="checkout()"]');
+    if (checkoutButton) {
+      checkoutButton.style.display = 'block';
+    }
+  }
+
+  // Обновляем общую сумму корзины
+  cartTotalElement.textContent = totalCost.toFixed(2);
+
+  // Обновление текста кнопки "Корзина"
+  if (totalCost > 0) {
+    cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
+    cartTotalContainer.style.display = 'block';
+  } else {
+    cartButton.textContent = 'Корзина';
+    cartTotalContainer.style.display = 'none';
+  }
+}
 
     async function checkout() {
       if (!telegramId) {
@@ -501,25 +526,25 @@
   // Добавляем заказ в начало списка
   historyItemsList.prepend(orderContainer);
 }
-
     let orders = [];
     let currentPage = 1;
     const ordersPerPage = 5;
 
     async function fetchOrderHistory() {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/orders`);
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        const allOrders = await response.json();
-        orders = allOrders.sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по дате
-        displayOrders(currentPage);
-      } catch (error) {
-        console.error('Ошибка при получении истории заказов:', error);
-        alert('Ошибка при получении истории заказов');
-      }
+  try {
+    // Загружаем заказы только для текущего пользователя
+    const response = await fetch(`${BACKEND_URL}/api/orders?telegramId=${telegramId}`);
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
     }
+    const userOrders = await response.json();
+    orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по дате
+    displayOrders(currentPage);
+  } catch (error) {
+    console.error('Ошибка при получении истории заказов:', error);
+    alert('Ошибка при получении истории заказов');
+  }
+}
 
     function displayOrders(page) {
       const historyItemsList = document.getElementById('history-items');
