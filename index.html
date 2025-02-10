@@ -98,11 +98,26 @@
       align-items: center;
       margin-bottom: 10px;
     }
+    .cart-item span {
+  flex: 1; /* Название товара занимает доступное пространство */
+  margin-right: 10px; /* Отступ между названием и количеством */
+}
+
+.cart-item .quantity-controls {
+  display: flex; /* Группируем кнопки "+" и "-" */
+  gap: 5px; /* Отступ между кнопками */
+  align-items: center; /* Выравниваем кнопки по центру */
+}
     .cart-item button, .history-item button {
-      margin: 0 5px;
-      padding: 2px 5px;
+      padding: 5px 10px; /* Добавляем внутренние отступы для кнопок */
       cursor: pointer;
+      border: 1px solid #ccc;
+      background-color: white;
+      border-radius: 5px; /* Скругляем углы кнопок */
     }
+    .cart-item button:hover {
+  background-color: #f0f0f0; /* Эффект при наведении */
+}
     .cart-total, .history-total {
       margin-top: 10px;
       text-align: right;
@@ -371,7 +386,7 @@
   let totalCost = 0;
 
   if (Object.keys(cartItems).length === 0) {
-    // Если корзина пуста (нет элементов в cartItems)
+    // Если корзина пуста
     const noItemsMessage = document.createElement('p');
     noItemsMessage.textContent = 'Нет товаров в корзине';
     noItemsMessage.style.textAlign = 'center';
@@ -389,11 +404,15 @@
       const item = cartItems[productId];
       const li = document.createElement('li');
       li.className = 'cart-item';
+
+      // Создаем структуру с Flexbox
       li.innerHTML = `
         <span>${item.name}</span>
-        <span>${item.quantity} x ${item.price} баллов</span>
-        <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
-        <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
+        <div class="quantity-controls">
+          <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
+          <span>${item.quantity} x ${item.price} баллов</span>
+          <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
+        </div>
       `;
       cartItemsList.appendChild(li);
       totalCost += item.quantity * item.price;
