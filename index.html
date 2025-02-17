@@ -336,19 +336,22 @@
   </div>
   <div id="products"></div>
   <div class="cart-container" id="cart-container">
-    <h2>Корзина</h2>
-    <button class="back-button" onclick="toggleCart()">×</button>
-    <ul id="cart-items"></ul>
-    <div class="cart-total" id="cart-total-container" style="display: none;">
-      Сумма корзины: <span id="cart-total">0</span> баллов
+    <div class="header-container">
+      <h2>Корзина</h2>
+      <button class="back-button" onclick="toggleCart()">Назад</button>
     </div>
-    <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+    <ul id="cart-items"></ul>
+    <div class="cart-bottom">
+      <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+      <div id="cart-total">0 баллов</div>
+    </div>
   </div>
   <div class="history-container" id="history-container">
-    <h2>История</h2>
+    <div class="header-container">
+      <h2>История заказов</h2>
+      <button class="back-button" onclick="toggleHistory()">Назад</button>
+    </div>
     <div id="history-items"></div>
-    <button class="load-more-button" id="load-more-button" onclick="loadMoreOrders()">Загрузить еще</button>
-    <button class="back-button" onclick="toggleHistory()">Назад</button>
   </div>
   <div class="loading-container" id="loading-container">
     Подождите...
