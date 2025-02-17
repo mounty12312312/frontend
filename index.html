@@ -323,9 +323,33 @@
       font-weight: bold;
       text-align: right;
     }
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .loading-text {
+      background-color: #ff355f;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
+  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-text">Подождите...</div>
+  </div>
   <div class="header">
     <div class="balance">
       Баланс: <span id="user-balance-value" style="display: none;">0 баллов</span>
@@ -439,38 +463,40 @@
     document.addEventListener('DOMContentLoaded', async () => {
       console.log('DOMContentLoaded event triggered');
       
-      // Сначала создаем оверлей загрузки
-      createLoadingOverlay();
-      
       try {
-        // Затем загружаем данные
+        // Загружаем данные
         await fetchUserBalance();
         await fetchProducts();
+        await fetchOrderHistory();
         updateCartDisplay();
       } catch (error) {
         console.error('Error during initial data loading:', error);
       }
     });
 
-    // Обновляем функции показа/скрытия загрузки
+    // Упрощаем функции показа/скрытия загрузки
     function showLoading() {
-      const loadingOverlay = createLoadingOverlay();
+      const loadingOverlay = document.getElementById('loading-overlay');
       if (loadingOverlay) {
         loadingOverlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
       }
     }
 
     function hideLoading() {
-      const loadingOverlay = createLoadingOverlay();
+      const loadingOverlay = document.getElementById('loading-overlay');
       if (loadingOverlay) {
         loadingOverlay.style.display = 'none';
-        document.body.style.overflow = '';
       }
     }
 
-    // Обновляем функцию fetchProducts с обработкой ошибок
+    // Обновляем функцию fetchProducts
     async function fetchProducts() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (!loadingOverlay) {
+        console.error('Loading overlay not found');
+        return;
+      }
+
       try {
         console.log('Fetching products...');
         showLoading();
@@ -478,7 +504,15 @@
         const url = `${BACKEND_URL}/api/products`;
         console.log('Request URL:', url);
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Origin': 'https://mounty12312312.github.io'
+          }
+        });
+        
         console.log('Response status:', response.status);
         
         if (!response.ok) {
