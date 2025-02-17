@@ -570,61 +570,68 @@
     }
 
     function updateCartDisplay() {
-  cartItemsList.innerHTML = ''; // Очищаем список товаров в корзине
-  let totalCost = 0;
+      const cartItemsList = document.getElementById('cart-items');
+      const cartTotalContainer = document.getElementById('cart-total-container');
+      const cartTotalElement = document.getElementById('cart-total');
+      const checkoutButton = document.querySelector('.checkout-button');
+      
+      cartItemsList.innerHTML = '';
+      let totalCost = 0;
 
-  if (Object.keys(cartItems).length === 0) {
-    // Если корзина пуста
-    const noItemsMessage = document.createElement('p');
-    noItemsMessage.textContent = 'Нет товаров в корзине';
-    noItemsMessage.style.textAlign = 'center';
-    noItemsMessage.style.color = '#888';
-    cartItemsList.appendChild(noItemsMessage);
-
-    // Скрываем кнопку "Оплатить"
-    const checkoutButton = document.querySelector('#cart-container button[onclick="checkout()"]');
-    if (checkoutButton) {
-      checkoutButton.style.display = 'none';
+      // Проверяем пустая ли корзина
+      if (Object.keys(cartItems).length === 0) {
+        // Если корзина пуста
+        const noItemsMessage = document.createElement('p');
+        noItemsMessage.textContent = 'Корзина пуста';
+        noItemsMessage.style.textAlign = 'center';
+        noItemsMessage.style.color = '#888';
+        cartItemsList.appendChild(noItemsMessage);
+        
+        // Делаем кнопку неактивной
+        checkoutButton.disabled = true;
+        checkoutButton.style.opacity = '0.5';
+        checkoutButton.style.cursor = 'not-allowed';
+        checkoutButton.style.backgroundColor = '#cccccc';
+        
+        // Скрываем общую сумму
+        cartTotalContainer.style.display = 'none';
+        
+        // Обновляем текст кнопки корзины
+        cartButton.textContent = 'Корзина';
+      } else {
+        // Если в корзине есть товары
+        checkoutButton.disabled = false;
+        checkoutButton.style.opacity = '1';
+        checkoutButton.style.cursor = 'pointer';
+        checkoutButton.style.backgroundColor = '#007bff';
+        
+        // Отображаем товары
+        for (const productId in cartItems) {
+          const item = cartItems[productId];
+          const li = document.createElement('li');
+          li.className = 'cart-item';
+          
+          li.innerHTML = `
+            <span>${item.name}</span>
+            <div class="quantity-controls">
+              <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
+              <span>${item.quantity} x ${item.price} баллов</span>
+              <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
+            </div>
+          `;
+          
+          cartItemsList.appendChild(li);
+          totalCost += item.quantity * item.price;
+        }
+        
+        // Показываем и обновляем общую сумму
+        cartTotalContainer.style.display = 'block';
+        cartTotalElement.textContent = totalCost.toFixed(2);
+        
+        // Обновляем текст кнопки корзины
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
+      }
     }
-  } else {
-    // Если корзина не пуста
-    for (const productId in cartItems) {
-      const item = cartItems[productId];
-      const li = document.createElement('li');
-      li.className = 'cart-item';
-
-      // Создаем структуру с Flexbox
-      li.innerHTML = `
-        <span>${item.name}</span>
-        <div class="quantity-controls">
-          <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
-          <span>${item.quantity} x ${item.price} баллов</span>
-          <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
-        </div>
-      `;
-      cartItemsList.appendChild(li);
-      totalCost += item.quantity * item.price;
-    }
-
-    // Показываем кнопку "Оплатить"
-    const checkoutButton = document.querySelector('#cart-container button[onclick="checkout()"]');
-    if (checkoutButton) {
-      checkoutButton.style.display = 'block';
-    }
-  }
-
-  // Обновляем общую сумму корзины
-  cartTotalElement.textContent = totalCost.toFixed(2);
-
-  // Обновление текста кнопки "Корзина"
-  if (totalCost > 0) {
-    cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
-    cartTotalContainer.style.display = 'block';
-  } else {
-    cartButton.textContent = 'Корзина';
-    cartTotalContainer.style.display = 'none';
-  }
-}
 
     // Добавляем новые функции для работы с формой
     function showCheckoutForm() {
