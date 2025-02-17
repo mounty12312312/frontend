@@ -461,38 +461,68 @@
       return loadingOverlay;
     }
 
-    // Обновляем порядок выполнения при загрузке страницы
+    // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
+    let isInitialized = false;
+
     document.addEventListener('DOMContentLoaded', async () => {
+      // Предотвращаем повторную инициализацию
+      if (isInitialized) return;
+      isInitialized = true;
+      
       console.log('DOMContentLoaded event triggered');
+
+      // Создаем необходимые элементы, если они отсутствуют
+      createRequiredElements();
       
-      // Проверяем наличие элементов баланса
-      const balanceValueElement = document.getElementById('user-balance-value');
-      const balanceTextElement = document.getElementById('user-balance-text');
-      
-      console.log('Элемент с id="user-balance-value":', balanceValueElement);
-      console.log('Элемент с id="user-balance-text":', balanceTextElement);
-      
-      if (balanceValueElement && balanceTextElement) {
-        console.log('Элементы баланса найдены');
-        
-        // Инициализируем отображение
-        balanceValueElement.style.display = 'none';
-        balanceTextElement.style.display = 'block';
-        
-        // Загружаем баланс
-        await fetchUserBalance();
-      } else {
-        console.error('Элементы баланса не найдены');
-      }
-      
-      // Загружаем остальные данные
       try {
+        // Загружаем данные последовательно
+        await fetchUserBalance();
         await fetchProducts();
         await fetchOrderHistory();
+        updateCartDisplay();
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error during initialization:', error);
       }
     });
+
+    // Функция для создания необходимых элементов
+    function createRequiredElements() {
+      // Создаем элементы баланса, если они отсутствуют
+      if (!document.getElementById('user-balance-value')) {
+        const balanceValue = document.createElement('span');
+        balanceValue.id = 'user-balance-value';
+        balanceValue.style.display = 'none';
+        document.querySelector('.balance').appendChild(balanceValue);
+      }
+      
+      if (!document.getElementById('user-balance-text')) {
+        const balanceText = document.createElement('span');
+        balanceText.id = 'user-balance-text';
+        balanceText.textContent = 'Нет баланса';
+        balanceText.style.display = 'block';
+        document.querySelector('.balance').appendChild(balanceText);
+      }
+      
+      // Создаем элементы корзины, если они отсутствуют
+      if (!document.getElementById('cart-items')) {
+        const cartItems = document.createElement('ul');
+        cartItems.id = 'cart-items';
+        document.querySelector('.cart-container').appendChild(cartItems);
+      }
+      
+      if (!document.getElementById('cart-total')) {
+        const cartTotal = document.createElement('div');
+        cartTotal.id = 'cart-total';
+        document.querySelector('.cart-bottom').appendChild(cartTotal);
+      }
+      
+      // Создаем элементы истории заказов, если они отсутствуют
+      if (!document.getElementById('history-items')) {
+        const historyItems = document.createElement('div');
+        historyItems.id = 'history-items';
+        document.querySelector('.history-container').appendChild(historyItems);
+      }
+    }
 
     // Упрощаем функции показа/скрытия загрузки
     function showLoading() {
