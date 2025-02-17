@@ -164,27 +164,130 @@
   display: none;
   position: fixed;
   top: 80px;
-  left: 2.5%;
-  transform: translate(-50%, -50%) scale(0.8); /* Начальная позиция (меньший размер и центр) */
-  width: 90%;
-  max-height: 80%; /* Ограничение высоты для скролла */
-  overflow-y: auto; /* Добавляем скролл */
-  padding: 10px;
+  right: 0;
+  width: 100%;
+  max-width: 400px;
+  height: calc(100vh - 80px);
   background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
-  animation: fadeIn 0.3s ease-out forwards; /* Появление */
+  border-left: 1px solid #ccc;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
+  overflow-y: auto;
 }
 
 .cart-container.show,
 .history-container.show {
+  transform: translateX(0);
   display: block;
 }
 
-.cart-container.hide,
-.history-container.hide {
-  animation: fadeOut 0.3s ease-in forwards; /* Исчезновение */
+.cart-container h2,
+.history-container h2 {
+  margin-bottom: 20px;
+  padding-right: 40px; /* Место для кнопки назад */
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back-button:hover {
+  color: #333;
+}
+
+.checkout-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.checkout-button:hover {
+  background-color: #0056b3;
+}
+
+.checkout-form-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkout-form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-buttons button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-buttons .cancel {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+}
+
+.form-buttons .submit {
+  background-color: #007bff;
+  color: white;
+  border: none;
 }
     .load-more-button {
       margin-top: 10px;
@@ -234,12 +337,12 @@
   <div id="products"></div>
   <div class="cart-container" id="cart-container">
     <h2>Корзина</h2>
+    <button class="back-button" onclick="toggleCart()">×</button>
     <ul id="cart-items"></ul>
-    <button onclick="checkout()">Оплатить</button>
     <div class="cart-total" id="cart-total-container" style="display: none;">
       Сумма корзины: <span id="cart-total">0</span> баллов
     </div>
-    <button class="back-button" onclick="toggleCart()">Назад</button>
+    <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
   </div>
   <div class="history-container" id="history-container">
     <h2>История</h2>
@@ -249,6 +352,31 @@
   </div>
   <div class="loading-container" id="loading-container">
     Подождите...
+  </div>
+  <div class="checkout-form-container" id="checkout-form-container">
+    <div class="checkout-form">
+      <h3>Оформление заказа</h3>
+      <div class="form-group">
+        <label for="recipient">ФИО получателя*</label>
+        <input type="text" id="recipient" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Телефон получателя*</label>
+        <input type="tel" id="phone" required>
+      </div>
+      <div class="form-group">
+        <label for="city">Город*</label>
+        <input type="text" id="city" required>
+      </div>
+      <div class="form-group">
+        <label for="address">Адрес доставки*</label>
+        <input type="text" id="address" required>
+      </div>
+      <div class="form-buttons">
+        <button class="cancel" onclick="hideCheckoutForm()">Отмена</button>
+        <button class="submit" onclick="submitOrder()">Подтвердить</button>
+      </div>
+    </div>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
@@ -274,6 +402,14 @@
     let userBalanceText = document.getElementById('user-balance-text');
     const loadingContainer = document.getElementById('loading-container');
 
+    // Добавляем константы для кэширования
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
+    const CACHE_KEYS = {
+      PRODUCTS: 'cached_products',
+      USER_BALANCE: 'cached_user_balance',
+      ORDERS: 'cached_orders'
+    };
+
     function showLoading() {
       loadingContainer.classList.add('show');
     }
@@ -284,29 +420,53 @@
 
     async function fetchProducts() {
       try {
-        showLoading(); // Показываем плашку "Подождите..."
+        // Проверяем кэш
+        const cached = localStorage.getItem(CACHE_KEYS.PRODUCTS);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            const productsContainer = document.getElementById('products');
+            displayProducts(data);
+            return;
+          }
+        }
+
+        showLoading();
         const response = await fetch(`${BACKEND_URL}/api/products`);
         const products = await response.json();
-        const productsContainer = document.getElementById('products');
-        products.forEach(product => {
-          const productDiv = document.createElement('div');
-          productDiv.className = 'product';
-          productDiv.setAttribute('data-id', product[0]);
-          productDiv.innerHTML = `
-            <img src="${product[4]}" alt="${product[1]}">
-            <h3>${product[1]}</h3>
-            <p>${product[2]}</p>
-            <p>Цена: ${product[3]}</p>
-            <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
-          `;
-          productsContainer.appendChild(productDiv);
-        });
+        
+        // Сохраняем в кэш
+        localStorage.setItem(CACHE_KEYS.PRODUCTS, JSON.stringify({
+          data: products,
+          timestamp: Date.now()
+        }));
+        
+        displayProducts(products);
       } catch (error) {
         console.error('Ошибка при загрузке продуктов:', error);
         alert('Ошибка при загрузке продуктов');
       } finally {
-        hideLoading(); // Скрываем плашку "Подождите..."
+        hideLoading();
       }
+    }
+
+    // Выносим отображение продуктов в отдельную функцию
+    function displayProducts(products) {
+      const productsContainer = document.getElementById('products');
+      productsContainer.innerHTML = '';
+      products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.className = 'product';
+        productDiv.setAttribute('data-id', product[0]);
+        productDiv.innerHTML = `
+          <img src="${product[4]}" alt="${product[1]}">
+          <h3>${product[1]}</h3>
+          <p>${product[2]}</p>
+          <p>Цена: ${product[3]}</p>
+          <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
+        `;
+        productsContainer.appendChild(productDiv);
+      });
     }
 
     async function fetchUserBalance() {
@@ -314,26 +474,43 @@
         console.error('Не удалось получить ID пользователя');
         return;
       }
+      
       try {
-        showLoading(); // Показываем плашку "Подождите..."
+        // Проверяем кэш
+        const cached = localStorage.getItem(CACHE_KEYS.USER_BALANCE);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            updateUserBalance(data);
+            return;
+          }
+        }
+
+        showLoading();
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        console.log('Ответ от сервера:', response);
         if (!response.ok) {
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
         const user = await response.json();
-        console.log('Данные пользователя:', user);
+        
         if (!Array.isArray(user) || user.length !== 2) {
           throw new Error('Неверный формат данных пользователя');
         }
+        
         const [userId, balance] = user;
+        
+        // Сохраняем в кэш
+        localStorage.setItem(CACHE_KEYS.USER_BALANCE, JSON.stringify({
+          data: balance,
+          timestamp: Date.now()
+        }));
+        
         updateUserBalance(balance);
       } catch (error) {
         console.error('Ошибка при получении баланса:', error);
-        alert('Ошибка при получении баланса');
         updateUserBalance(null);
       } finally {
-        hideLoading(); // Скрываем плашку "Подождите..."
+        hideLoading();
       }
     }
 
@@ -441,65 +618,92 @@
   }
 }
 
-    async function checkout() {
+    // Добавляем новые функции для работы с формой
+    function showCheckoutForm() {
+      document.getElementById('checkout-form-container').style.display = 'flex';
+    }
+
+    function hideCheckoutForm() {
+      document.getElementById('checkout-form-container').style.display = 'none';
+    }
+
+    async function submitOrder() {
+      const recipient = document.getElementById('recipient').value;
+      const phone = document.getElementById('phone').value;
+      const city = document.getElementById('city').value;
+      const address = document.getElementById('address').value;
+
+      // Проверяем заполнение обязательных полей
+      if (!recipient || !phone || !city || !address) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+      }
+
+      // Добавляем данные доставки к заказу
+      const deliveryInfo = {
+        recipient,
+        phone,
+        city,
+        address
+      };
+
+      try {
+        await checkout(deliveryInfo);
+        hideCheckoutForm();
+      } catch (error) {
+        console.error('Ошибка при оформлении заказа:', error);
+        alert('Произошла ошибка при оформлении заказа');
+      }
+    }
+
+    // Обновляем функцию checkout
+    async function checkout(deliveryInfo) {
       if (!telegramId) {
         alert('Не удалось получить ID пользователя');
         return;
       }
       try {
-        showLoading(); // Показываем сообщение "Подождите"
+        showLoading();
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         const user = await response.json();
-        console.log('Данные пользователя:', user);
+        
         if (!Array.isArray(user) || user.length !== 2) {
           throw new Error('Неверный формат данных пользователя');
         }
+        
         const [userId, balance] = user;
         const totalCost = parseFloat(cartTotalElement.textContent);
+        
         if (parseFloat(balance) >= totalCost) {
-          const newBalance = parseFloat(balance) - totalCost;
-          const updateBalanceResponse = await fetch(`${BACKEND_URL}/api/user/${telegramId}/updateBalance`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ balance: newBalance })
-          });
-          const updateBalanceData = await updateBalanceResponse.json();
-          console.log('Ответ от сервера при обновлении баланса:', updateBalanceData);
-          if (!updateBalanceResponse.ok) {
-            throw new Error(`Ошибка при обновлении баланса: ${updateBalanceResponse.status}`);
-          }
+          const orderData = {
+            telegramId,
+            products: cartItems,
+            totalCost,
+            date: new Date().toISOString(),
+            deliveryInfo // Добавляем информацию о доставке
+          };
+
           const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-              telegramId,
-              products: cartItems,
-              totalCost,
-              date: new Date().toISOString()
-            })
+            body: JSON.stringify(orderData)
           });
-          const orderData = await orderResponse.json();
-          console.log('Ответ от сервера при добавлении заказа:', orderData);
+
           if (!orderResponse.ok) {
-            throw new Error(`Ошибка при добавлении заказа: ${orderResponse.status}`);
+            throw new Error(`Ошибка при оформлении заказа: ${orderResponse.status}`);
           }
-          if (orderData.success) {
-            alert('Заказ оформлен!');
-            // Добавляем заказ в историю на фронтенде
-            const newOrder = {
-              date: new Date().toISOString(),
-              products: cartItems,
-              totalCost: totalCost
-            };
-            addOrderToHistory(newOrder); // Добавляем заказ в начало списка
+
+          const result = await orderResponse.json();
+          
+          if (result.success) {
+            clearCache();
+            alert('Заказ успешно оформлен!');
             cartItems = {};
             updateCartDisplay();
-            updateUserBalance(updateBalanceData.newBalance);
-            toggleCart(); // Автоматическое закрытие корзины
+            updateUserBalance(result.newBalance);
+            toggleCart();
           } else {
             throw new Error('Ошибка при оформлении заказа');
           }
@@ -508,9 +712,9 @@
         }
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
-        alert('Ошибка при оформлении заказа');
+        alert('Произошла ошибка при оформлении заказа');
       } finally {
-        hideLoading(); // Скрываем сообщение "Подождите"
+        hideLoading();
       }
     }
 
@@ -554,13 +758,30 @@
 
     async function fetchOrderHistory() {
   try {
-    // Загружаем заказы только для текущего пользователя
+    // Проверяем кэш
+    const cached = localStorage.getItem(CACHE_KEYS.ORDERS);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        orders = data;
+        displayOrders(currentPage);
+        return;
+      }
+    }
+
     const response = await fetch(`${BACKEND_URL}/api/orders?telegramId=${telegramId}`);
     if (!response.ok) {
       throw new Error(`Ошибка HTTP: ${response.status}`);
     }
     const userOrders = await response.json();
-    orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по дате
+    orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Сохраняем в кэш
+    localStorage.setItem(CACHE_KEYS.ORDERS, JSON.stringify({
+      data: orders,
+      timestamp: Date.now()
+    }));
+    
     displayOrders(currentPage);
   } catch (error) {
     console.error('Ошибка при получении истории заказов:', error);
@@ -685,6 +906,12 @@ console.error('Элементы с id="user-balance-value" или id="user-balan
         updateCartDisplay()
       }, 100); // Задержка 100 мс
     };
+
+    // Добавляем функцию очистки кэша после успешной покупки
+    function clearCache() {
+      localStorage.removeItem(CACHE_KEYS.USER_BALANCE);
+      localStorage.removeItem(CACHE_KEYS.ORDERS);
+    }
   </script>
 </body>
 </html>
