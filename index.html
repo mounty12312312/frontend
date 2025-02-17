@@ -534,17 +534,25 @@
 
     async function initializeApp() {
       try {
-        // Загружаем баланс
-        await fetchUserBalance();
+        console.log('Starting app initialization...');
         
-        // Загружаем продукты
-        await fetchProducts();
-        
-        // Загружаем историю заказов
-        await fetchOrderHistory();
-        
-        // Инициализируем корзину
+        // Инициализируем пустую корзину
+        cartItems = {};
         updateCartDisplay();
+        
+        // Загружаем данные параллельно
+        const [balanceResult, productsResult, ordersResult] = await Promise.allSettled([
+          fetchUserBalance(),
+          fetchProducts(),
+          fetchOrderHistory()
+        ]);
+        
+        console.log('Initialization results:', {
+          balance: balanceResult.status,
+          products: productsResult.status,
+          orders: ordersResult.status
+        });
+        
       } catch (error) {
         console.error('Initialization error:', error);
       }
@@ -612,7 +620,7 @@
     }
 
     // Обновленная функция отображения истории
-    function displayOrders(orders) {
+    function displayOrders(orders = []) {
       const historyContainer = document.getElementById('history-items');
       
       if (!historyContainer) {
@@ -622,7 +630,7 @@
       
       historyContainer.innerHTML = '';
       
-      if (!orders || orders.length === 0) {
+      if (!Array.isArray(orders) || orders.length === 0) {
         const emptyMessage = document.createElement('div');
         emptyMessage.textContent = 'История заказов пуста';
         emptyMessage.className = 'empty-history';
@@ -631,18 +639,22 @@
       }
       
       orders.forEach(order => {
-        const orderElement = document.createElement('div');
-        orderElement.className = 'order-item';
-        orderElement.innerHTML = `
-          <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-          <div class="order-details">
-            ${Object.entries(order.products).map(([id, product]) => 
-              `<div>${product.name} x ${product.quantity}</div>`
-            ).join('')}
-          </div>
-          <div class="order-total">${order.totalCost} баллов</div>
-        `;
-        historyContainer.appendChild(orderElement);
+        try {
+          const orderElement = document.createElement('div');
+          orderElement.className = 'order-item';
+          orderElement.innerHTML = `
+            <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
+            <div class="order-details">
+              ${Object.entries(order.products || {}).map(([id, product]) => 
+                `<div>${product.name} x ${product.quantity}</div>`
+              ).join('')}
+            </div>
+            <div class="order-total">${order.totalCost} баллов</div>
+          `;
+          historyContainer.appendChild(orderElement);
+        } catch (error) {
+          console.error('Error displaying order:', error, order);
+        }
       });
     }
 
@@ -793,34 +805,33 @@
 
     async function fetchOrderHistory() {
       try {
-        // Проверяем кэш
-        const cached = localStorage.getItem(CACHE_KEYS.ORDERS);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            orders = data;
-            displayOrders(currentPage);
-            return;
-          }
+        const response = await fetch(`${BACKEND_URL}/api/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ telegramId })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const response = await fetch(`${BACKEND_URL}/api/orders?telegramId=${telegramId}`);
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
+        const data = await response.json();
+        console.log('Orders data received:', data);
+
+        // Проверяем структуру данных
+        if (Array.isArray(data)) {
+          displayOrders(data);
+        } else if (data.orders && Array.isArray(data.orders)) {
+          displayOrders(data.orders);
+        } else {
+          console.error('Invalid orders data format:', data);
+          displayOrders([]);
         }
-        const userOrders = await response.json();
-        orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        // Сохраняем в кэш
-        localStorage.setItem(CACHE_KEYS.ORDERS, JSON.stringify({
-          data: orders,
-          timestamp: Date.now()
-        }));
-        
-        displayOrders(currentPage);
       } catch (error) {
         console.error('Ошибка при получении истории заказов:', error);
-        alert('Ошибка при получении истории заказов');
+        displayOrders([]);
       }
     }
 
@@ -966,7 +977,14 @@
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/balance/${telegramId}`);
+        const response = await fetch(`${BACKEND_URL}/api/balance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ telegramId })
+        });
+        
         console.log('Balance response status:', response.status);
         
         if (!response.ok) {
