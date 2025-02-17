@@ -42,15 +42,17 @@
       text-decoration: underline;
     }
     .balance {
-      margin-left: 20px;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
+      font-size: 16px;
+      color: var(--accent-color);
+      font-weight: bold;
     }
-    .balance #user-balance-value {
-      margin-top: 5px;
-      font-size: 14px;
-      color: #555;
+    #user-balance-value {
+      color: var(--accent-color);
+    }
+    #user-balance-text {
+      color: #888;
     }
     .loading-container {
       display: none;
@@ -352,7 +354,7 @@
   </div>
   <div class="header">
     <div class="balance">
-      Баланс: <span id="user-balance-value" style="display: none;">0 баллов</span>
+      <span id="user-balance-value" style="display: none;">0 баллов</span>
       <span id="user-balance-text" style="display: none;">Нет баланса</span>
     </div>
     <button class="header-button" onclick="toggleCart()">Корзина</button>
@@ -463,14 +465,32 @@
     document.addEventListener('DOMContentLoaded', async () => {
       console.log('DOMContentLoaded event triggered');
       
-      try {
-        // Загружаем данные
+      // Проверяем наличие элементов баланса
+      const balanceValueElement = document.getElementById('user-balance-value');
+      const balanceTextElement = document.getElementById('user-balance-text');
+      
+      console.log('Элемент с id="user-balance-value":', balanceValueElement);
+      console.log('Элемент с id="user-balance-text":', balanceTextElement);
+      
+      if (balanceValueElement && balanceTextElement) {
+        console.log('Элементы баланса найдены');
+        
+        // Инициализируем отображение
+        balanceValueElement.style.display = 'none';
+        balanceTextElement.style.display = 'block';
+        
+        // Загружаем баланс
         await fetchUserBalance();
+      } else {
+        console.error('Элементы баланса не найдены');
+      }
+      
+      // Загружаем остальные данные
+      try {
         await fetchProducts();
         await fetchOrderHistory();
-        updateCartDisplay();
       } catch (error) {
-        console.error('Error during initial data loading:', error);
+        console.error('Error loading data:', error);
       }
     });
 
@@ -549,76 +569,57 @@
       });
     }
 
-    async function fetchUserBalance() {
-      if (!telegramId) {
-        console.error('Не удалось получить ID пользователя');
+    // Обновляем функцию обновления баланса
+    function updateUserBalance(balance) {
+      const balanceValueElement = document.getElementById('user-balance-value');
+      const balanceTextElement = document.getElementById('user-balance-text');
+      
+      if (!balanceValueElement || !balanceTextElement) {
+        console.error('Balance elements not found');
         return;
       }
-      
-      try {
-        // Проверяем кэш
-        const cached = localStorage.getItem(CACHE_KEYS.USER_BALANCE);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            updateUserBalance(data);
-            return;
-          }
-        }
 
-        showLoading();
-        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        const user = await response.json();
-        
-        if (!Array.isArray(user) || user.length !== 2) {
-          throw new Error('Неверный формат данных пользователя');
-        }
-        
-        const [userId, balance] = user;
-        
-        // Сохраняем в кэш
-        localStorage.setItem(CACHE_KEYS.USER_BALANCE, JSON.stringify({
-          data: balance,
-          timestamp: Date.now()
-        }));
-        
-        updateUserBalance(balance);
-      } catch (error) {
-        console.error('Ошибка при получении баланса:', error);
-        updateUserBalance(null);
-      } finally {
-        hideLoading();
+      console.log('Обновление баланса:', balance);
+      
+      if (balance !== null && balance !== undefined) {
+        // Есть баланс
+        balanceValueElement.textContent = `${balance} баллов`;
+        balanceValueElement.style.display = 'block';
+        balanceTextElement.style.display = 'none';
+      } else {
+        // Нет баланса
+        balanceValueElement.style.display = 'none';
+        balanceTextElement.style.display = 'block';
       }
     }
 
-    function updateUserBalance(balance) {
-      console.log('Обновление баланса:', balance);
-      console.log('Элемент для обновления баланса:', userBalanceValue);
-      console.log('Текущее значение баланса:', userBalanceValue ? userBalanceValue.textContent : 'null');
-
-      if (userBalanceValue && userBalanceText) {
-        if (balance === null || balance === undefined) {
-          userBalanceText.style.display = 'block';
-          userBalanceText.textContent = 'Нет баланса';
-          userBalanceValue.style.display = 'none';
-        } else {
-          userBalanceText.style.display = 'none';
-          userBalanceValue.style.display = 'block';
-          userBalanceValue.textContent = `${balance} баллов`;
-        }
-      } else {
-        console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
+    // Обновляем функцию получения баланса
+    async function fetchUserBalance() {
+      if (!telegramId) {
+        console.error('TelegramId not found');
+        return;
       }
 
-      // Обновление баланса в корзине
-      const totalCost = parseFloat(cartTotalElement.textContent);
-      if (totalCost > 0) {
-        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
-      } else {
-        cartButton.textContent = 'Корзина';
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/balance/${telegramId}`);
+        console.log('Balance response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Balance data received:', data);
+        
+        if (data.success && data.balance !== undefined) {
+          updateUserBalance(data.balance);
+        } else {
+          console.error('Invalid balance data:', data);
+          updateUserBalance(null);
+        }
+      } catch (error) {
+        console.error('Ошибка при получении баланса:', error);
+        updateUserBalance(null);
       }
     }
 
@@ -984,31 +985,6 @@ function toggleHistory() {
   cartContainer.classList.remove('show');
   cartContainer.classList.remove('hide');
 }
-
-    
-   // Дополнительная проверка после загрузки DOM
-document.addEventListener('DOMContentLoaded', () => {
-console.log('DOMContentLoaded event triggered');
-userBalanceValue = document.getElementById('user-balance-value');
-userBalanceText = document.getElementById('user-balance-text');
-console.log('Элемент с id="user-balance-value":', userBalanceValue);
-console.log('Элемент с id="user-balance-text":', userBalanceText);
-if (userBalanceValue && userBalanceText) {
-console.log('Элементы с id="user-balance-value" и id="user-balance-text" найдены');
-fetchUserBalance();
-} else {
-console.error('Элементы с id="user-balance-value" или id="user-balance-text" не найдены');
-}
-});
-
-    // Запуск функций после загрузки страницы
-    window.onload = () => {
-      setTimeout(() => {
-        fetchProducts();
-        fetchOrderHistory();
-        updateCartDisplay()
-      }, 100); // Задержка 100 мс
-    };
 
     // Добавляем функцию очистки кэша после успешной покупки
     function clearCache() {
