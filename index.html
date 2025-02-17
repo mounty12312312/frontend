@@ -357,6 +357,14 @@
     <div class="checkout-form">
       <h3>Оформление заказа</h3>
       <div class="form-group">
+        <label for="sender-name">ФИО отправителя*</label>
+        <input type="text" id="sender-name" required>
+      </div>
+      <div class="form-group">
+        <label for="sender-phone">Телефон отправителя*</label>
+        <input type="tel" id="sender-phone" required>
+      </div>
+      <div class="form-group">
         <label for="recipient">ФИО получателя*</label>
         <input type="text" id="recipient" required>
       </div>
@@ -628,19 +636,23 @@
     }
 
     async function submitOrder() {
+      const senderName = document.getElementById('sender-name').value;
+      const senderPhone = document.getElementById('sender-phone').value;
       const recipient = document.getElementById('recipient').value;
       const phone = document.getElementById('phone').value;
       const city = document.getElementById('city').value;
       const address = document.getElementById('address').value;
 
       // Проверяем заполнение обязательных полей
-      if (!recipient || !phone || !city || !address) {
+      if (!senderName || !senderPhone || !recipient || !phone || !city || !address) {
         alert('Пожалуйста, заполните все обязательные поля');
         return;
       }
 
       // Добавляем данные доставки к заказу
       const deliveryInfo = {
+        senderName,
+        senderPhone,
         recipient,
         phone,
         city,
