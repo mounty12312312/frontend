@@ -671,60 +671,67 @@
     // Обновляем функцию checkout
     async function checkout(deliveryInfo) {
       if (!telegramId) {
+        console.error('Отсутствует telegramId');
         alert('Не удалось получить ID пользователя');
         return;
       }
+      
       try {
         showLoading();
-        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        const user = await response.json();
         
-        if (!Array.isArray(user) || user.length !== 2) {
-          throw new Error('Неверный формат данных пользователя');
+        // Создаем данные заказа
+        const orderData = {
+          telegramId,
+          products: cartItems,
+          totalCost: parseFloat(cartTotalElement.textContent),
+          date: new Date().toISOString(),
+          deliveryInfo
+        };
+
+        console.log('Отправляемые данные заказа:', orderData);
+        console.log('URL запроса:', `${BACKEND_URL}/api/order`);
+
+        // Отправляем заказ
+        const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        console.log('Статус ответа:', orderResponse.status);
+        console.log('Заголовки ответа:', Object.fromEntries(orderResponse.headers.entries()));
+
+        if (!orderResponse.ok) {
+          const errorText = await orderResponse.text();
+          console.error('Текст ошибки:', errorText);
+          throw new Error(`Ошибка при оформлении заказа: ${orderResponse.status}. ${errorText}`);
         }
+
+        const result = await orderResponse.json();
+        console.log('Результат запроса:', result);
         
-        const [userId, balance] = user;
-        const totalCost = parseFloat(cartTotalElement.textContent);
-        
-        if (parseFloat(balance) >= totalCost) {
-          const orderData = {
-            telegramId,
-            products: cartItems,
-            totalCost,
-            date: new Date().toISOString(),
-            deliveryInfo // Добавляем информацию о доставке
-          };
-
-          const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(orderData)
-          });
-
-          if (!orderResponse.ok) {
-            throw new Error(`Ошибка при оформлении заказа: ${orderResponse.status}`);
-          }
-
-          const result = await orderResponse.json();
+        if (result.success) {
+          console.log('Заказ успешно создан, очищаем кэш');
+          clearCache();
           
-          if (result.success) {
-            clearCache();
-            alert('Заказ успешно оформлен!');
-            cartItems = {};
-            updateCartDisplay();
-            updateUserBalance(result.newBalance);
-            toggleCart();
-          } else {
-            throw new Error('Ошибка при оформлении заказа');
-          }
+          console.log('Обновляем баланс пользователя');
+          await fetchUserBalance();
+          
+          console.log('Очищаем корзину');
+          cartItems = {};
+          updateCartDisplay();
+          
+          alert('Заказ успешно оформлен!');
+          toggleCart();
         } else {
-          alert('Недостаточно средств на счету!');
+          throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
       } catch (error) {
-        console.error('Ошибка при оформлении заказа:', error);
-        alert('Произошла ошибка при оформлении заказа');
+        console.error('Подробная ошибка при оформлении заказа:', error);
+        console.error('Stack trace:', error.stack);
+        alert(error.message || 'Произошла ошибка при оформлении заказа');
       } finally {
         hideLoading();
       }
