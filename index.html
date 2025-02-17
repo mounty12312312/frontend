@@ -569,43 +569,52 @@
       }
     }
 
+    // Функция для получения даты в МСК (UTC+3)
+    function getMoscowDate() {
+      const now = new Date();
+      // Получаем смещение в минутах для МСК (UTC+3)
+      const mskOffset = 3 * 60;
+      // Получаем локальное смещение в минутах
+      const localOffset = -now.getTimezoneOffset();
+      // Вычисляем разницу в миллисекундах
+      const diffOffset = (mskOffset - localOffset) * 60 * 1000;
+      
+      // Создаем новую дату с учетом смещения
+      const mskDate = new Date(now.getTime() + diffOffset);
+      
+      // Форматируем дату в формате YYYY-MM-DD
+      return mskDate.toISOString().split('T')[0];
+    }
+
+    // Обновляем функцию updateCartDisplay
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
-      const cartTotalContainer = document.getElementById('cart-total-container');
       const cartTotalElement = document.getElementById('cart-total');
       const checkoutButton = document.querySelector('.checkout-button');
       
       cartItemsList.innerHTML = '';
       let totalCost = 0;
 
-      // Проверяем пустая ли корзина
       if (Object.keys(cartItems).length === 0) {
-        // Если корзина пуста
         const noItemsMessage = document.createElement('p');
         noItemsMessage.textContent = 'Корзина пуста';
         noItemsMessage.style.textAlign = 'center';
         noItemsMessage.style.color = '#888';
         cartItemsList.appendChild(noItemsMessage);
         
-        // Делаем кнопку неактивной
         checkoutButton.disabled = true;
         checkoutButton.style.opacity = '0.5';
         checkoutButton.style.cursor = 'not-allowed';
         checkoutButton.style.backgroundColor = '#cccccc';
         
-        // Скрываем общую сумму
-        cartTotalContainer.style.display = 'none';
-        
-        // Обновляем текст кнопки корзины
+        cartTotalElement.textContent = '0 баллов';
         cartButton.textContent = 'Корзина';
       } else {
-        // Если в корзине есть товары
         checkoutButton.disabled = false;
         checkoutButton.style.opacity = '1';
         checkoutButton.style.cursor = 'pointer';
         checkoutButton.style.backgroundColor = '#007bff';
         
-        // Отображаем товары
         for (const productId in cartItems) {
           const item = cartItems[productId];
           const li = document.createElement('li');
@@ -624,11 +633,7 @@
           totalCost += item.quantity * item.price;
         }
         
-        // Показываем и обновляем общую сумму
-        cartTotalContainer.style.display = 'block';
-        cartTotalElement.textContent = totalCost.toFixed(2);
-        
-        // Обновляем текст кнопки корзины
+        cartTotalElement.textContent = `${totalCost.toFixed(2)} баллов`;
         cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
       }
     }
@@ -678,7 +683,6 @@
     // Обновляем функцию checkout
     async function checkout(deliveryInfo) {
       if (!telegramId) {
-        console.error('Отсутствует telegramId');
         alert('Не удалось получить ID пользователя');
         return;
       }
@@ -686,19 +690,16 @@
       try {
         showLoading();
         
-        // Создаем данные заказа
         const orderData = {
           telegramId,
           products: cartItems,
-          totalCost: parseFloat(cartTotalElement.textContent),
-          date: new Date().toISOString(),
+          totalCost: parseFloat(document.getElementById('cart-total').textContent),
+          date: getMoscowDate(), // Используем новую функцию для даты
           deliveryInfo
         };
 
         console.log('Отправляемые данные заказа:', orderData);
-        console.log('URL запроса:', `${BACKEND_URL}/api/order`);
-
-        // Отправляем заказ
+        
         const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
           method: 'POST',
           headers: {
@@ -736,8 +737,7 @@
           throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
       } catch (error) {
-        console.error('Подробная ошибка при оформлении заказа:', error);
-        console.error('Stack trace:', error.stack);
+        console.error('Ошибка при оформлении заказа:', error);
         alert(error.message || 'Произошла ошибка при оформлении заказа');
       } finally {
         hideLoading();
