@@ -471,6 +471,39 @@
         font-size: 14px;
       }
     }
+
+    .checkout-button {
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 90%;
+      margin: 20px auto;
+      display: block;
+      font-size: 16px;
+    }
+
+    .checkout-button:disabled {
+      background-color: #ffb3c0;
+      cursor: not-allowed;
+    }
+
+    .checkout-button:not(:disabled):hover {
+      background-color: #e61e4d;
+    }
+
+    .cart-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-items {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -906,11 +939,10 @@
     // Обновляем функцию updateCartDisplay
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
-      const cartTotalElement = document.getElementById('cart-total');
+      const cartButton = document.querySelector('[onclick="toggleCart()"]');
       const checkoutButton = document.querySelector('.checkout-button');
-      const cartButton = document.querySelector('.header-button');
       
-      if (!cartItemsList || !cartTotalElement || !checkoutButton || !cartButton) {
+      if (!cartItemsList || !cartButton || !checkoutButton) {
         console.error('Не найдены необходимые элементы DOM');
         return;
       }
@@ -928,6 +960,7 @@
         checkoutButton.disabled = true;
         checkoutButton.style.opacity = '0.5';
         checkoutButton.style.cursor = 'not-allowed';
+        cartButton.textContent = 'Корзина: 0 Б';
       } else {
         checkoutButton.disabled = false;
         checkoutButton.style.opacity = '1';
@@ -941,9 +974,9 @@
           li.innerHTML = `
             <span>${item.name}</span>
             <div class="quantity-controls">
-              <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
-              <span>${item.quantity} x ${item.price} баллов</span>
-              <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
+              <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
+              <span>${item.quantity} x ${formatPrice(item.price)}</span>
+              <button onclick="updateCartItemQuantity('${productId}', 1)">+</button>
             </div>
           `;
           
@@ -951,8 +984,7 @@
           totalCost += item.quantity * item.price;
         }
         
-        cartTotalElement.textContent = totalCost.toFixed(2);
-        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
+        cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
       }
     }
 
@@ -1200,32 +1232,53 @@
     // Обновляем функцию обновления корзины
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
-      const cartTotalElement = document.getElementById('cart-total');
+      const cartButton = document.querySelector('[onclick="toggleCart()"]');
+      const checkoutButton = document.querySelector('.checkout-button');
       
-      if (!cartItemsList || !cartTotalElement) return;
-      
+      if (!cartItemsList || !cartButton || !checkoutButton) {
+        console.error('Не найдены необходимые элементы DOM');
+        return;
+      }
+
       cartItemsList.innerHTML = '';
       let totalCost = 0;
 
-      for (const productId in cartItems) {
-        const item = cartItems[productId];
-        const li = document.createElement('li');
-        li.className = 'cart-item';
+      if (Object.keys(cartItems).length === 0) {
+        const noItemsMessage = document.createElement('p');
+        noItemsMessage.textContent = 'Корзина пуста';
+        noItemsMessage.style.textAlign = 'center';
+        noItemsMessage.style.color = '#888';
+        cartItemsList.appendChild(noItemsMessage);
         
-        li.innerHTML = `
-          <span>${item.name}</span>
-          <div class="quantity-controls">
-            <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
-            <span>${item.quantity} x ${formatPrice(item.price)}</span>
-            <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
-          </div>
-        `;
+        checkoutButton.disabled = true;
+        checkoutButton.style.opacity = '0.5';
+        checkoutButton.style.cursor = 'not-allowed';
+        cartButton.textContent = 'Корзина: 0 Б';
+      } else {
+        checkoutButton.disabled = false;
+        checkoutButton.style.opacity = '1';
+        checkoutButton.style.cursor = 'pointer';
         
-        cartItemsList.appendChild(li);
-        totalCost += item.quantity * item.price;
+        for (const productId in cartItems) {
+          const item = cartItems[productId];
+          const li = document.createElement('li');
+          li.className = 'cart-item';
+          
+          li.innerHTML = `
+            <span>${item.name}</span>
+            <div class="quantity-controls">
+              <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
+              <span>${item.quantity} x ${formatPrice(item.price)}</span>
+              <button onclick="updateCartItemQuantity('${productId}', 1)">+</button>
+            </div>
+          `;
+          
+          cartItemsList.appendChild(li);
+          totalCost += item.quantity * item.price;
+        }
+        
+        cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
       }
-
-      cartTotalElement.textContent = formatPrice(totalCost);
     }
 
     // Обновляем функцию отображения баланса
