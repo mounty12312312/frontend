@@ -25,8 +25,8 @@
       right: 0;
       height: 60px;
       background-color: white;
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
       padding: 0 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -504,6 +504,60 @@
       flex-grow: 1;
       overflow-y: auto;
     }
+
+    .header-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .header-button {
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .checkout-button {
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 90%;
+      margin: 20px auto;
+      display: block;
+      font-size: 16px;
+    }
+
+    .load-more-button {
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .header-button:hover,
+    .checkout-button:hover,
+    .load-more-button:hover {
+      background-color: #e61e4d;
+    }
+
+    #cart-total {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -522,7 +576,7 @@
   <div class="cart-container" id="cart-container">
     <div class="header-container">
       <h2>Корзина</h2>
-      <button class="back-button" onclick="toggleCart()">Назад</button>
+      <button class="back-button" onclick="toggleCart()">✕</button>
     </div>
     <ul id="cart-items"></ul>
     <div class="cart-bottom">
@@ -533,7 +587,7 @@
   <div class="history-container" id="history-container">
     <div class="header-container">
       <h2>История заказов</h2>
-      <button class="back-button" onclick="toggleHistory()">Назад</button>
+      <button class="back-button" onclick="toggleHistory()">✕</button>
     </div>
     <div id="history-items"></div>
   </div>
@@ -627,30 +681,35 @@
       if (isInitialized) return;
       isInitialized = true;
 
-      // Создаем необходимые элементы
-      createRequiredElements();
-
-      // Проверяем наличие элементов баланса
-      const balanceValueElement = document.getElementById('user-balance-value');
-      const balanceTextElement = document.getElementById('user-balance-text');
-      
-      console.log('Элемент с id="user-balance-value":', balanceValueElement);
-      console.log('Элемент с id="user-balance-text":', balanceTextElement);
-      
-      if (balanceValueElement && balanceTextElement) {
-        console.log('Элементы баланса найдены');
-        balanceValueElement.style.display = 'none';
-        balanceTextElement.style.display = 'block';
-        await fetchUserBalance();
-      }
+      // Показываем загрузку сразу
+      showLoading();
 
       try {
-        await fetchUserBalance();
-        await fetchProducts();
-        await fetchOrderHistory();
+        // Создаем необходимые элементы
+        createRequiredElements();
+
+        // Проверяем наличие элементов баланса
+        const balanceValueElement = document.getElementById('user-balance-value');
+        const balanceTextElement = document.getElementById('user-balance-text');
+        
+        if (balanceValueElement && balanceTextElement) {
+          console.log('Элементы баланса найдены');
+          balanceValueElement.style.display = 'none';
+          balanceTextElement.style.display = 'block';
+        }
+
+        // Загружаем данные
+        await Promise.all([
+          fetchUserBalance(),
+          fetchProducts(),
+          fetchOrderHistory()
+        ]);
+
         updateCartDisplay();
       } catch (error) {
         console.error('Error loading data:', error);
+      } finally {
+        hideLoading();
       }
     });
 
@@ -1345,8 +1404,8 @@
         right: 0;
         height: 60px;
         background-color: white;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
         padding: 0 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1354,22 +1413,10 @@
         box-sizing: border-box;
       }
 
-      .balance-container {
-        background-color: #f8f9fa;
-        border-radius: 20px;
-        padding: 8px 16px;
-        display: inline-flex;
-        align-items: center;
-        border: 1px solid #e0e0e0;
-        white-space: nowrap;
-      }
-
       .header-buttons {
         display: flex;
+        justify-content: center;
         gap: 20px;
-        justify-content: flex-end;
-        flex-grow: 1;
-        margin-left: 20px;
       }
 
       .header-button {
@@ -1414,6 +1461,32 @@
       .checkout-button:hover,
       .load-more-button:hover {
         background-color: #e61e4d;
+      }
+
+      .balance-container {
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+        white-space: nowrap;
+      }
+
+      .header-button {
+        background-color: #ff355f;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      #cart-total {
+        display: none;
       }
     `;
 
