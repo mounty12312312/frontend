@@ -558,6 +558,118 @@
     #cart-total {
       display: none;
     }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background-color: white;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .header-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .header-button {
+      font-size: 13px; /* Уменьшаем размер шрифта */
+    }
+
+    .cart-container,
+    .history-container {
+      position: fixed;
+      top: 60px;
+      right: -100%;
+      width: 100%;
+      max-width: 400px;
+      height: calc(100vh - 60px);
+      background-color: white;
+      border-left: 1px solid #ccc;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      transition: right 0.3s ease-out;
+      overflow-y: auto;
+      z-index: 999;
+    }
+
+    .cart-container.show,
+    .history-container.show {
+      right: 0;
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 30px 1fr 100px;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .cart-item-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .quantity-controls button {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background-color: #ff355f;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .quantity-controls span {
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .product-price {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ff355f;
+      margin-bottom: 12px;
+    }
+
+    #cart-total {
+      display: none;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e0e0e0;
+    }
   </style>
 </head>
 <body>
@@ -1031,11 +1143,10 @@
           li.className = 'cart-item';
           
           li.innerHTML = `
-            <span>${item.name}</span>
+            <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
+            <span class="cart-item-name">${item.name}</span>
             <div class="quantity-controls">
-              <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
               <span>${item.quantity} x ${formatPrice(item.price)}</span>
-              <button onclick="updateCartItemQuantity('${productId}', 1)">+</button>
             </div>
           `;
           
@@ -1277,7 +1388,7 @@
           <div class="product-info">
             <h3 class="product-name">${name}</h3>
             <p class="product-description">${description}</p>
-            <div class="product-price">${formatPrice(price)}</div>
+            <div class="product-price">${price} Б</div>
             <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" class="add-to-cart-button">
               Добавить в корзину
             </button>
@@ -1324,11 +1435,10 @@
           li.className = 'cart-item';
           
           li.innerHTML = `
-            <span>${item.name}</span>
+            <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
+            <span class="cart-item-name">${item.name}</span>
             <div class="quantity-controls">
-              <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
               <span>${item.quantity} x ${formatPrice(item.price)}</span>
-              <button onclick="updateCartItemQuantity('${productId}', 1)">+</button>
             </div>
           `;
           
