@@ -394,6 +394,43 @@
       font-weight: bold;
       color: var(--accent-color);
     }
+
+    .cart-container {
+      padding-bottom: 120px; /* Место для кнопки и суммы */
+    }
+
+    .cart-footer {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      padding: 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkout-button {
+      width: 80%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .cart-total {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -411,9 +448,9 @@
         <button class="back-button" onclick="toggleCart()">Назад</button>
       </div>
       <ul id="cart-items"></ul>
-      <div class="cart-bottom">
+      <div class="cart-footer">
         <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-        <div id="cart-total">0 баллов</div>
+        <div class="cart-total" id="cart-total">0</div>
       </div>
     </div>
 
@@ -583,39 +620,48 @@
       const cartItemsList = document.getElementById('cart-items');
       const cartTotalElement = document.getElementById('cart-total');
       const checkoutButton = document.querySelector('.checkout-button');
-      
-      if (!cartItemsList || !cartTotalElement || !checkoutButton) {
-        console.error('Cart elements not found');
-        return;
-      }
+      const cartFooter = document.querySelector('.cart-footer');
       
       cartItemsList.innerHTML = '';
       let totalCost = 0;
-      
+
       if (Object.keys(cartItems).length === 0) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.textContent = 'Корзина пуста';
-        emptyMessage.className = 'empty-cart';
-        cartItemsList.appendChild(emptyMessage);
-        cartTotalElement.textContent = '0 баллов';
+        const noItemsMessage = document.createElement('p');
+        noItemsMessage.textContent = 'Корзина пуста';
+        noItemsMessage.style.textAlign = 'center';
+        noItemsMessage.style.color = '#888';
+        cartItemsList.appendChild(noItemsMessage);
+        
         checkoutButton.disabled = true;
+        checkoutButton.style.opacity = '0.5';
+        checkoutButton.style.cursor = 'not-allowed';
+        cartFooter.style.display = 'none';
       } else {
-        for (const [id, item] of Object.entries(cartItems)) {
+        checkoutButton.disabled = false;
+        checkoutButton.style.opacity = '1';
+        checkoutButton.style.cursor = 'pointer';
+        cartFooter.style.display = 'flex';
+        
+        for (const productId in cartItems) {
+          const item = cartItems[productId];
           const li = document.createElement('li');
           li.className = 'cart-item';
+          
           li.innerHTML = `
             <span>${item.name}</span>
             <div class="quantity-controls">
-              <button onclick="updateCartItemQuantity('${id}', -1)">-</button>
+              <button onclick="updateCartItemQuantity(${productId}, -1)">-</button>
               <span>${item.quantity} x ${item.price} баллов</span>
-              <button onclick="updateCartItemQuantity('${id}', 1)">+</button>
+              <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
             </div>
           `;
+          
           cartItemsList.appendChild(li);
-          totalCost += item.price * item.quantity;
+          totalCost += item.quantity * item.price;
         }
-        cartTotalElement.textContent = `${totalCost} баллов`;
-        checkoutButton.disabled = false;
+        
+        cartTotalElement.textContent = totalCost.toFixed(2);
+        cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
       }
     }
 
