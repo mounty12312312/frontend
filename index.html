@@ -26,7 +26,7 @@
       height: 60px;
       background-color: white;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       padding: 0 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1235,18 +1235,119 @@
         const orderElement = document.createElement('div');
         orderElement.className = 'order-container';
         
+        // Проверяем наличие products в заказе
+        const productsHtml = order.products ? 
+          Object.entries(order.products)
+            .map(([_, product]) => `${product.name} x ${product.quantity}`)
+            .join('<br>')
+          : 'Нет данных о продуктах';
+        
         orderElement.innerHTML = `
           <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-          <div class="order-products">
-            ${Object.entries(order.products)
-              .map(([_, product]) => `${product.name} x ${product.quantity}`)
-              .join('<br>')}
-          </div>
+          <div class="order-products">${productsHtml}</div>
           <div class="order-total">${formatPrice(order.totalCost)}</div>
         `;
         
         historyContainer.appendChild(orderElement);
       });
     }
+
+    // Обновляем стили для шапки
+    const headerStyles = `
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        box-sizing: border-box;
+      }
+
+      .balance-container {
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+      }
+
+      #user-balance-value {
+        color: #ff355f;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .header-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-grow: 1;
+      }
+
+      .header-right {
+        min-width: 120px; /* Равно ширине balance-container для центрирования */
+      }
+
+      .header-button {
+        background-color: #ff355f;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 14px;
+      }
+
+      .header-button:hover {
+        background-color: #e61e4d;
+      }
+
+      @media (max-width: 600px) {
+        .header {
+          padding: 0 10px;
+        }
+
+        .balance-container {
+          padding: 6px 12px;
+        }
+
+        .header-button {
+          padding: 6px 12px;
+          font-size: 13px;
+        }
+      }
+    `;
+
+    // Обновляем HTML структуру шапки
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.querySelector('.header');
+      if (header) {
+        header.innerHTML = `
+          <div class="balance-container">
+            <span id="user-balance-value">0 Б</span>
+            <span id="user-balance-text" style="display: none;">Нет баланса</span>
+          </div>
+          <div class="header-buttons">
+            <button class="header-button" onclick="toggleCart()">Корзина</button>
+            <button class="header-button" onclick="toggleHistory()">История заказов</button>
+          </div>
+          <div class="header-right"></div>
+        `;
+      }
+    });
+
+    // Добавляем стили
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = headerStyles;
+    document.head.appendChild(styleSheet);
   </script>
 </body>
