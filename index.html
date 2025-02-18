@@ -409,14 +409,14 @@
     .product-price {
       font-size: 16px;
       font-weight: bold;
-      color: #007bff;
+      color: #ff355f;
       margin-bottom: 12px;
     }
 
     .add-to-cart-button {
       width: 100%;
       padding: 8px 16px;
-      background-color: #007bff;
+      background-color: #ff355f;
       color: white;
       border: none;
       border-radius: 4px;
@@ -425,14 +425,35 @@
     }
 
     .add-to-cart-button:hover {
-      background-color: #0056b3;
+      background-color: #e61e4d;
     }
 
     #products {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
       padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Обновляем все остальные кнопки с синим цветом */
+    .checkout-button,
+    .form-buttons .submit {
+      background-color: #ff355f;
+    }
+
+    .checkout-button:hover,
+    .form-buttons .submit:hover {
+      background-color: #e61e4d;
+    }
+
+    /* Обновляем цвет текста баланса */
+    .product-price,
+    .order-total,
+    #cart-total,
+    #user-balance-value {
+      color: #ff355f;
     }
   </style>
 </head>
