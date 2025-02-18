@@ -651,7 +651,7 @@
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/balance/${telegramId}`);
+        const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         console.log('Balance response status:', response.status);
 
         if (!response.ok) {
@@ -661,8 +661,8 @@
         const data = await response.json();
         console.log('Balance data received:', data);
 
-        if (data.success && data.balance !== undefined) {
-          updateUserBalance(data.balance);
+        if (data && data[1] !== undefined) {
+          updateUserBalance(data[1]);
         } else {
           console.error('Invalid balance data:', data);
           updateUserBalance(null);
@@ -714,9 +714,10 @@
       const cartItemsList = document.getElementById('cart-items');
       const cartTotalElement = document.getElementById('cart-total');
       const checkoutButton = document.querySelector('.checkout-button');
-
-      if (!cartItemsList || !cartTotalElement || !checkoutButton) {
-        console.error('Required elements not found');
+      const cartButton = document.querySelector('.header-button');
+      
+      if (!cartItemsList || !cartTotalElement || !checkoutButton || !cartButton) {
+        console.error('Не найдены необходимые элементы DOM');
         return;
       }
 
@@ -729,25 +730,20 @@
         noItemsMessage.style.textAlign = 'center';
         noItemsMessage.style.color = '#888';
         cartItemsList.appendChild(noItemsMessage);
-
+        
         checkoutButton.disabled = true;
         checkoutButton.style.opacity = '0.5';
         checkoutButton.style.cursor = 'not-allowed';
-        checkoutButton.style.backgroundColor = '#cccccc';
-
-        cartTotalElement.textContent = '0 баллов';
-        cartButton.textContent = 'Корзина';
       } else {
         checkoutButton.disabled = false;
         checkoutButton.style.opacity = '1';
         checkoutButton.style.cursor = 'pointer';
-        checkoutButton.style.backgroundColor = '#007bff';
-
+        
         for (const productId in cartItems) {
           const item = cartItems[productId];
           const li = document.createElement('li');
           li.className = 'cart-item';
-
+          
           li.innerHTML = `
             <span>${item.name}</span>
             <div class="quantity-controls">
@@ -756,12 +752,12 @@
               <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
             </div>
           `;
-
+          
           cartItemsList.appendChild(li);
           totalCost += item.quantity * item.price;
         }
-
-        cartTotalElement.textContent = `${totalCost.toFixed(2)} баллов`;
+        
+        cartTotalElement.textContent = totalCost.toFixed(2);
         cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
       }
     }
