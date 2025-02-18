@@ -14,32 +14,39 @@
       padding: 0;
       background-color: white;
       color: black;
+      overflow-x: hidden;
+      width: 100%;
     }
     .header {
       position: fixed;
       top: 0;
-      width: 100%;
+      left: 0;
+      right: 0;
+      height: 60px;
       background-color: white;
-      z-index: 1000;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 10px;
-      text-align: center;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+      box-sizing: border-box;
     }
     .header h1 {
       margin: 0;
     }
     .header-button {
-      cursor: pointer;
-      background: none;
+      background-color: #ff355f;
+      color: white;
       border: none;
-      font-size: 16px;
-      color: #007bff;
+      padding: 8px 16px;
+      margin-left: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
     .header-button:hover {
-      text-decoration: underline;
+      background-color: #e61e4d;
     }
     .balance {
       display: flex;
@@ -72,12 +79,13 @@
       display: block;
     }
     #products {
-      display: flex; /* Используем Flexbox */
-      flex-wrap: wrap; /* Разрешаем перенос строк */
-      justify-content: space-between; /* Равномерно распределяем элементы */
-      gap: 20px; /* Устанавливаем отступы между элементами */
-      padding: 80px 0px 0px; /* Отступ сверху для заголовка */
-      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 20px;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 0 auto;
     }
     .product {
       border: 1px solid #ccc;
@@ -372,18 +380,8 @@
     }
 
     .product-card {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px;
-      background: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-
-    .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .product-image {
@@ -428,15 +426,6 @@
       background-color: #e61e4d;
     }
 
-    #products {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
     /* Обновляем все остальные кнопки с синим цветом */
     .checkout-button,
     .form-buttons .submit {
@@ -454,6 +443,27 @@
     #cart-total,
     #user-balance-value {
       color: #ff355f;
+    }
+
+    /* Обновляем стили для мобильных устройств */
+    @media (max-width: 600px) {
+      .product-card {
+        margin: 5px;
+      }
+
+      #products {
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .header {
+        padding: 0 10px;
+      }
+
+      .header-button {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
