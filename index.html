@@ -995,7 +995,38 @@
 
     function loadMoreOrders() {
       currentPage++;
-      displayOrders(orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage));
+      const start = (currentPage - 1) * ordersPerPage;
+      const end = currentPage * ordersPerPage;
+      const pageOrders = orders.slice(start, end);
+      
+      if (pageOrders.length > 0) {
+        const historyContainer = document.getElementById('history-items');
+        
+        pageOrders.forEach(order => {
+          const orderElement = document.createElement('div');
+          orderElement.className = 'order-container';
+          
+          const productsHtml = order.products ? 
+            Object.entries(order.products)
+              .map(([_, product]) => `${product.name} x ${product.quantity}`)
+              .join('<br>')
+            : 'Нет данных о продуктах';
+          
+          orderElement.innerHTML = `
+            <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
+            <div class="order-products">${productsHtml}</div>
+            <div class="order-total">${formatPrice(order.totalCost)}</div>
+          `;
+          
+          historyContainer.appendChild(orderElement);
+        });
+      }
+
+      // Скрываем кнопку, если больше нет заказов для загрузки
+      const loadMoreButton = document.getElementById('load-more-button');
+      if (loadMoreButton && end >= orders.length) {
+        loadMoreButton.style.display = 'none';
+      }
     }
 
     function toggleCart() {
@@ -1274,26 +1305,18 @@
         background-color: #f8f9fa;
         border-radius: 20px;
         padding: 8px 16px;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         border: 1px solid #e0e0e0;
-      }
-
-      #user-balance-value {
-        color: #ff355f;
-        font-weight: bold;
-        margin: 0;
+        white-space: nowrap;
       }
 
       .header-buttons {
         display: flex;
-        gap: 10px;
-        justify-content: center;
+        gap: 20px;
+        justify-content: flex-end;
         flex-grow: 1;
-      }
-
-      .header-right {
-        min-width: 120px; /* Равно ширине balance-container для центрирования */
+        margin-left: 20px;
       }
 
       .header-button {
@@ -1305,25 +1328,39 @@
         cursor: pointer;
         transition: background-color 0.2s;
         font-size: 14px;
+        white-space: nowrap;
       }
 
-      .header-button:hover {
+      .checkout-button {
+        background-color: #ff355f;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        width: 90%;
+        margin: 20px auto;
+        display: block;
+        font-size: 16px;
+      }
+
+      .load-more-button {
+        background-color: #ff355f;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin: 20px auto;
+        display: block;
+      }
+
+      .header-button:hover,
+      .checkout-button:hover,
+      .load-more-button:hover {
         background-color: #e61e4d;
-      }
-
-      @media (max-width: 600px) {
-        .header {
-          padding: 0 10px;
-        }
-
-        .balance-container {
-          padding: 6px 12px;
-        }
-
-        .header-button {
-          padding: 6px 12px;
-          font-size: 13px;
-        }
       }
     `;
 
@@ -1337,10 +1374,9 @@
             <span id="user-balance-text" style="display: none;">Нет баланса</span>
           </div>
           <div class="header-buttons">
-            <button class="header-button" onclick="toggleCart()">Корзина</button>
+            <button class="header-button" onclick="toggleCart()">Корзина: 0 Б</button>
             <button class="header-button" onclick="toggleHistory()">История заказов</button>
           </div>
-          <div class="header-right"></div>
         `;
       }
     });
