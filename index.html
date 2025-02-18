@@ -346,124 +346,9 @@
       font-size: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-
-    :root {
-      --accent-color: #ff355f;
-      --white-color: #ffffff;
-      --text-color: #333333;
-    }
-
-    .balance-container {
-      padding: 10px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    #user-balance-value {
-      color: var(--accent-color);
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    #user-balance-text {
-      color: #888;
-      font-size: 16px;
-    }
-
-    .cart-container,
-    .history-container {
-      background-color: var(--white-color);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin: 10px;
-      padding: 15px;
-    }
-
-    .checkout-button {
-      background-color: var(--accent-color);
-      color: var(--white-color);
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    #cart-total {
-      text-align: center;
-      font-weight: bold;
-      color: var(--accent-color);
-    }
-
-    .cart-container {
-      padding-bottom: 120px; /* Место для кнопки и суммы */
-    }
-
-    .cart-footer {
-      position: fixed;
-      bottom: 0;
-      right: 0;
-      width: 100%;
-      max-width: 400px;
-      background: white;
-      padding: 20px;
-      border-top: 1px solid #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .checkout-button {
-      width: 80%;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .cart-total {
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-    }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- Баланс -->
-    <div class="balance-container">
-      <span id="user-balance-value"></span>
-      <span id="user-balance-text">Нет баланса</span>
-    </div>
-
-    <!-- Корзина -->
-    <div class="cart-container" id="cart-container">
-      <div class="header-container">
-        <h2>Корзина</h2>
-        <button class="back-button" onclick="toggleCart()">Назад</button>
-      </div>
-      <ul id="cart-items"></ul>
-      <div class="cart-footer">
-        <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-        <div class="cart-total" id="cart-total">0</div>
-      </div>
-    </div>
-
-    <!-- История заказов -->
-    <div class="history-container" id="history-container">
-      <div class="header-container">
-        <h2>История заказов</h2>
-        <button class="back-button" onclick="toggleHistory()">Назад</button>
-      </div>
-      <div id="history-items"></div>
-    </div>
-  </div>
-
   <div id="loading-overlay" class="loading-overlay" style="display: none;">
     <div class="loading-text">Подождите...</div>
   </div>
@@ -476,6 +361,24 @@
     <button class="header-button" onclick="toggleHistory()">История заказов</button>
   </div>
   <div id="products"></div>
+  <div class="cart-container" id="cart-container">
+    <div class="header-container">
+      <h2>Корзина</h2>
+      <button class="back-button" onclick="toggleCart()">Назад</button>
+    </div>
+    <ul id="cart-items"></ul>
+    <div class="cart-bottom">
+      <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+      <div id="cart-total">0 баллов</div>
+    </div>
+  </div>
+  <div class="history-container" id="history-container">
+    <div class="header-container">
+      <h2>История заказов</h2>
+      <button class="back-button" onclick="toggleHistory()">Назад</button>
+    </div>
+    <div id="history-items"></div>
+  </div>
   <div class="loading-container" id="loading-container">
     Подождите...
   </div>
@@ -558,70 +461,265 @@
       return loadingOverlay;
     }
 
+    // Обновляем порядок выполнения при загрузке страницы
     // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
     let isInitialized = false;
-
     document.addEventListener('DOMContentLoaded', async () => {
+      console.log('DOMContentLoaded event triggered');
+      // Предотвращаем повторную инициализацию
       if (isInitialized) return;
       isInitialized = true;
+
+      // Проверяем наличие элементов баланса
+      const balanceValueElement = document.getElementById('user-balance-value');
+      const balanceTextElement = document.getElementById('user-balance-text');
       
-      console.log('Initializing app...');
-      await initializeApp();
+      console.log('Элемент с id="user-balance-value":', balanceValueElement);
+      console.log('Элемент с id="user-balance-text":', balanceTextElement);
+      
+      if (balanceValueElement && balanceTextElement) {
+        console.log('Элементы баланса найдены');
+        
+        // Инициализируем отображение
+        balanceValueElement.style.display = 'none';
+        balanceTextElement.style.display = 'block';
+        
+        // Загружаем баланс
+        await fetchUserBalance();
+      } else {
+        console.error('Элементы баланса не найдены');
+      }
+      console.log('DOMContentLoaded event triggered');
+      // Создаем необходимые элементы, если они отсутствуют
+      createRequiredElements();
+
+      // Загружаем остальные данные
+      try {
+        // Загружаем данные последовательно
+        await fetchUserBalance();
+        await fetchProducts();
+        await fetchOrderHistory();
+        updateCartDisplay();
+      } catch (error) {
+        console.error('Error loading data:', error);
+        console.error('Error during initialization:', error);
+      }
     });
 
-    async function initializeApp() {
-      try {
-        console.log('Starting app initialization...');
-        
-        // Инициализируем пустую корзину
-        cartItems = {};
-        updateCartDisplay();
-        
-        // Загружаем данные параллельно
-        const [balanceResult, productsResult, ordersResult] = await Promise.allSettled([
-          fetchUserBalance(),
-          fetchProducts(),
-          fetchOrderHistory()
-        ]);
-        
-        console.log('Initialization results:', {
-          balance: balanceResult.status,
-          products: productsResult.status,
-          orders: ordersResult.status
-        });
-        
-      } catch (error) {
-        console.error('Initialization error:', error);
+    // Функция для создания необходимых элементов
+    function createRequiredElements() {
+      // Создаем элементы баланса, если они отсутствуют
+      if (!document.getElementById('user-balance-value')) {
+        const balanceValue = document.createElement('span');
+        balanceValue.id = 'user-balance-value';
+        balanceValue.style.display = 'none';
+        document.querySelector('.balance').appendChild(balanceValue);
+      }
+      
+      if (!document.getElementById('user-balance-text')) {
+        const balanceText = document.createElement('span');
+        balanceText.id = 'user-balance-text';
+        balanceText.textContent = 'Нет баланса';
+        balanceText.style.display = 'block';
+        document.querySelector('.balance').appendChild(balanceText);
+      }
+      
+      // Создаем элементы корзины, если они отсутствуют
+      if (!document.getElementById('cart-items')) {
+        const cartItems = document.createElement('ul');
+        cartItems.id = 'cart-items';
+        document.querySelector('.cart-container').appendChild(cartItems);
+      }
+      
+      if (!document.getElementById('cart-total')) {
+        const cartTotal = document.createElement('div');
+        cartTotal.id = 'cart-total';
+        document.querySelector('.cart-bottom').appendChild(cartTotal);
+      }
+      
+      // Создаем элементы истории заказов, если они отсутствуют
+      if (!document.getElementById('history-items')) {
+        const historyItems = document.createElement('div');
+        historyItems.id = 'history-items';
+        document.querySelector('.history-container').appendChild(historyItems);
+      }
+    }
+    // Упрощаем функции показа/скрытия загрузки
+    function showLoading() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
       }
     }
 
-    // Обновленная функция обновления баланса
+    function hideLoading() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+      }
+    }
+
+    // Обновляем функцию fetchProducts
+    async function fetchProducts() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (!loadingOverlay) {
+        console.error('Loading overlay not found');
+        return;
+      }
+
+      try {
+        console.log('Fetching products...');
+        showLoading();
+
+        const url = `${BACKEND_URL}/api/products`;
+        console.log('Request URL:', url);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Origin': 'https://mounty12312312.github.io'
+          }
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const products = await response.json();
+        console.log('Products received:', products);
+        displayProducts(products);
+
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Выносим отображение продуктов в отдельную функцию
+    function displayProducts(products) {
+      const productsContainer = document.getElementById('products');
+      productsContainer.innerHTML = '';
+      products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.className = 'product';
+        productDiv.setAttribute('data-id', product[0]);
+        productDiv.innerHTML = `
+          <img src="${product[4]}" alt="${product[1]}">
+          <h3>${product[1]}</h3>
+          <p>${product[2]}</p>
+          <p>Цена: ${product[3]}</p>
+          <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
+        `;
+        productsContainer.appendChild(productDiv);
+      });
+    }
+
+    // Обновляем функцию обновления баланса
     function updateUserBalance(balance) {
-      const valueElement = document.getElementById('user-balance-value');
-      const textElement = document.getElementById('user-balance-text');
-      
-      if (!valueElement || !textElement) {
+      const balanceValueElement = document.getElementById('user-balance-value');
+      const balanceTextElement = document.getElementById('user-balance-text');
+
+      if (!balanceValueElement || !balanceTextElement) {
         console.error('Balance elements not found');
         return;
       }
-      
+
+      console.log('Обновление баланса:', balance);
+
       if (balance !== null && balance !== undefined) {
-        valueElement.textContent = `${balance} баллов`;
-        valueElement.style.display = 'block';
-        textElement.style.display = 'none';
+        // Есть баланс
+        balanceValueElement.textContent = `${balance} баллов`;
+        balanceValueElement.style.display = 'block';
+        balanceTextElement.style.display = 'none';
       } else {
-        valueElement.style.display = 'none';
-        textElement.style.display = 'block';
+        // Нет баланса
+        balanceValueElement.style.display = 'none';
+        balanceTextElement.style.display = 'block';
       }
     }
 
-    // Обновленная функция отображения корзины
+    // Обновляем функцию получения баланса
+    async function fetchUserBalance() {
+      if (!telegramId) {
+        console.error('TelegramId not found');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/balance/${telegramId}`);
+        console.log('Balance response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Balance data received:', data);
+
+        if (data.success && data.balance !== undefined) {
+          updateUserBalance(data.balance);
+        } else {
+          console.error('Invalid balance data:', data);
+          updateUserBalance(null);
+        }
+      } catch (error) {
+        console.error('Ошибка при получении баланса:', error);
+        updateUserBalance(null);
+      }
+    }
+
+    function addToCart(productId, productName, productPrice) {
+      if (!cartItems[productId]) {
+        cartItems[productId] = { name: productName, price: productPrice, quantity: 1 };
+      } else {
+        cartItems[productId].quantity++;
+      }
+      updateCartDisplay();
+    }
+
+    function updateCartItemQuantity(productId, change) {
+      if (cartItems[productId]) {
+        cartItems[productId].quantity += change;
+        if (cartItems[productId].quantity <= 0) {
+          delete cartItems[productId];
+        }
+        updateCartDisplay();
+      }
+    }
+
+    // Функция для получения даты в МСК (UTC+3)
+    function getMoscowDate() {
+      const now = new Date();
+      // Получаем смещение в минутах для МСК (UTC+3)
+      const mskOffset = 3 * 60;
+      // Получаем локальное смещение в минутах
+      const localOffset = -now.getTimezoneOffset();
+      // Вычисляем разницу в миллисекундах
+      const diffOffset = (mskOffset - localOffset) * 60 * 1000;
+
+      // Создаем новую дату с учетом смещения
+      const mskDate = new Date(now.getTime() + diffOffset);
+
+      // Форматируем дату в формате YYYY-MM-DD
+      return mskDate.toISOString().split('T')[0];
+    }
+
+    // Обновляем функцию updateCartDisplay
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
       const cartTotalElement = document.getElementById('cart-total');
       const checkoutButton = document.querySelector('.checkout-button');
-      const cartFooter = document.querySelector('.cart-footer');
-      
+
+      if (!cartItemsList || !cartTotalElement || !checkoutButton) {
+        console.error('Required elements not found');
+        return;
+      }
+
       cartItemsList.innerHTML = '';
       let totalCost = 0;
 
@@ -631,22 +729,25 @@
         noItemsMessage.style.textAlign = 'center';
         noItemsMessage.style.color = '#888';
         cartItemsList.appendChild(noItemsMessage);
-        
+
         checkoutButton.disabled = true;
         checkoutButton.style.opacity = '0.5';
         checkoutButton.style.cursor = 'not-allowed';
-        cartFooter.style.display = 'none';
+        checkoutButton.style.backgroundColor = '#cccccc';
+
+        cartTotalElement.textContent = '0 баллов';
+        cartButton.textContent = 'Корзина';
       } else {
         checkoutButton.disabled = false;
         checkoutButton.style.opacity = '1';
         checkoutButton.style.cursor = 'pointer';
-        cartFooter.style.display = 'flex';
-        
+        checkoutButton.style.backgroundColor = '#007bff';
+
         for (const productId in cartItems) {
           const item = cartItems[productId];
           const li = document.createElement('li');
           li.className = 'cart-item';
-          
+
           li.innerHTML = `
             <span>${item.name}</span>
             <div class="quantity-controls">
@@ -655,53 +756,14 @@
               <button onclick="updateCartItemQuantity(${productId}, 1)">+</button>
             </div>
           `;
-          
+
           cartItemsList.appendChild(li);
           totalCost += item.quantity * item.price;
         }
-        
-        cartTotalElement.textContent = totalCost.toFixed(2);
+
+        cartTotalElement.textContent = `${totalCost.toFixed(2)} баллов`;
         cartButton.textContent = `Корзина: ${totalCost.toFixed(2)} баллов`;
       }
-    }
-
-    // Обновленная функция отображения истории
-    function displayOrders(orders = []) {
-      const historyContainer = document.getElementById('history-items');
-      
-      if (!historyContainer) {
-        console.error('History container not found');
-        return;
-      }
-      
-      historyContainer.innerHTML = '';
-      
-      if (!Array.isArray(orders) || orders.length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.textContent = 'История заказов пуста';
-        emptyMessage.className = 'empty-history';
-        historyContainer.appendChild(emptyMessage);
-        return;
-      }
-      
-      orders.forEach(order => {
-        try {
-          const orderElement = document.createElement('div');
-          orderElement.className = 'order-item';
-          orderElement.innerHTML = `
-            <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-            <div class="order-details">
-              ${Object.entries(order.products || {}).map(([id, product]) => 
-                `<div>${product.name} x ${product.quantity}</div>`
-              ).join('')}
-            </div>
-            <div class="order-total">${order.totalCost} баллов</div>
-          `;
-          historyContainer.appendChild(orderElement);
-        } catch (error) {
-          console.error('Error displaying order:', error, order);
-        }
-      });
     }
 
     // Добавляем новые функции для работы с формой
@@ -752,10 +814,10 @@
         alert('Не удалось получить ID пользователя');
         return;
       }
-      
+
       try {
         showLoading();
-        
+
         const orderData = {
           telegramId,
           products: cartItems,
@@ -765,7 +827,7 @@
         };
 
         console.log('Отправляемые данные заказа:', orderData);
-        
+
         const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
           method: 'POST',
           headers: {
@@ -785,18 +847,18 @@
 
         const result = await orderResponse.json();
         console.log('Результат запроса:', result);
-        
+
         if (result.success) {
           console.log('Заказ успешно создан, очищаем кэш');
           clearCache();
-          
+
           console.log('Обновляем баланс пользователя');
           await fetchUserBalance();
-          
+
           console.log('Очищаем корзину');
           cartItems = {};
           updateCartDisplay();
-          
+
           alert('Заказ успешно оформлен!');
           toggleCart();
         } else {
@@ -811,73 +873,115 @@
     }
 
     function addOrderToHistory(order) {
-      const historyItemsList = document.getElementById('history-items');
-      // Создаем новый элемент для заказа
-      const orderContainer = document.createElement('div');
-      orderContainer.className = 'order-container';
+  const historyItemsList = document.getElementById('history-items');
+  // Создаем новый элемент для заказа
+  const orderContainer = document.createElement('div');
+  orderContainer.className = 'order-container';
 
-      // Дата заказа
-      const orderDate = document.createElement('div');
-      orderDate.className = 'order-date';
-      orderDate.textContent = new Date(order.date).toLocaleDateString();
+  // Дата заказа
+  const orderDate = document.createElement('div');
+  orderDate.className = 'order-date';
+  orderDate.textContent = new Date(order.date).toLocaleDateString();
 
-      // Товары в заказе
-      const orderProducts = document.createElement('div');
-      orderProducts.className = 'order-products';
-      for (const productId in order.products) {
-        const product = order.products[productId];
-        const productItem = document.createElement('div');
-        productItem.textContent = `${product.name}, ${product.quantity} шт.`; // Обновленный формат
-        orderProducts.appendChild(productItem);
-      }
+  // Товары в заказе
+  const orderProducts = document.createElement('div');
+  orderProducts.className = 'order-products';
+  for (const productId in order.products) {
+    const product = order.products[productId];
+    const productItem = document.createElement('div');
+    productItem.textContent = `${product.name}, ${product.quantity} шт.`; // Обновленный формат
+    orderProducts.appendChild(productItem);
+  }
 
-      // Общая сумма заказа
-      const orderTotal = document.createElement('div');
-      orderTotal.className = 'order-total';
-      orderTotal.textContent = `${order.totalCost} баллов`;
+  // Общая сумма заказа
+  const orderTotal = document.createElement('div');
+  orderTotal.className = 'order-total';
+  orderTotal.textContent = `${order.totalCost} баллов`;
 
-      // Добавляем элементы в контейнер заказа
-      orderContainer.appendChild(orderDate);
-      orderContainer.appendChild(orderProducts);
-      orderContainer.appendChild(orderTotal);
+  // Добавляем элементы в контейнер заказа
+  orderContainer.appendChild(orderDate);
+  orderContainer.appendChild(orderProducts);
+  orderContainer.appendChild(orderTotal);
 
-      // Добавляем заказ в начало списка
-      historyItemsList.prepend(orderContainer);
-    }
-
+  // Добавляем заказ в начало списка
+  historyItemsList.prepend(orderContainer);
+}
     let orders = [];
     let currentPage = 1;
     const ordersPerPage = 5;
 
     async function fetchOrderHistory() {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/orders`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ telegramId })
+  try {
+    // Проверяем кэш
+    const cached = localStorage.getItem(CACHE_KEYS.ORDERS);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        orders = data;
+        displayOrders(currentPage);
+        return;
+      }
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/orders?telegramId=${telegramId}`);
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
+    }
+    const userOrders = await response.json();
+    orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Сохраняем в кэш
+    localStorage.setItem(CACHE_KEYS.ORDERS, JSON.stringify({
+      data: orders,
+      timestamp: Date.now()
+    }));
+
+    displayOrders(currentPage);
+  } catch (error) {
+    console.error('Ошибка при получении истории заказов:', error);
+    alert('Ошибка при получении истории заказов');
+  }
+}
+
+    function displayOrders(page) {
+      const historyItemsList = document.getElementById('history-items');
+      const start = (page - 1) * ordersPerPage;
+      const end = page * ordersPerPage;
+      const pageOrders = orders.slice(start, end);
+      if (pageOrders.length > 0) {
+        pageOrders.forEach(order => {
+          const orderContainer = document.createElement('div');
+          orderContainer.className = 'order-container';
+
+          const orderDate = document.createElement('div');
+          orderDate.className = 'order-date';
+          orderDate.textContent = new Date(order.date).toLocaleDateString();
+
+          const orderProducts = document.createElement('div');
+          orderProducts.className = 'order-products';
+          for (const productId in order.products) {
+            const product = order.products[productId];
+            const productItem = document.createElement('div');
+            productItem.textContent = `${product.name}, ${product.quantity} шт.`;
+            orderProducts.appendChild(productItem);
+          }
+
+          const orderTotal = document.createElement('div');
+          orderTotal.className = 'order-total';
+          orderTotal.textContent = `${order.totalCost} баллов`;
+
+          orderContainer.appendChild(orderDate);
+          orderContainer.appendChild(orderProducts);
+          orderContainer.appendChild(orderTotal);
+
+          historyItemsList.appendChild(orderContainer);
         });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Orders data received:', data);
-
-        // Проверяем структуру данных
-        if (Array.isArray(data)) {
-          displayOrders(data);
-        } else if (data.orders && Array.isArray(data.orders)) {
-          displayOrders(data.orders);
-        } else {
-          console.error('Invalid orders data format:', data);
-          displayOrders([]);
-        }
-      } catch (error) {
-        console.error('Ошибка при получении истории заказов:', error);
-        displayOrders([]);
+      }
+      const loadMoreButton = document.getElementById('load-more-button');
+      if (end >= orders.length) {
+        loadMoreButton.style.display = 'none'; // Скрываем кнопку, если больше нет заказов
+      } else {
+        loadMoreButton.style.display = 'block'; // Показываем кнопку, если есть еще заказы
       }
     }
 
@@ -887,204 +991,55 @@
     }
 
     function toggleCart() {
-      const cartContainer = document.getElementById('cart-container');
-      const historyContainer = document.getElementById('history-container');
+  const cartContainer = document.getElementById('cart-container');
+  const historyContainer = document.getElementById('history-container');
 
-      if (cartContainer.classList.contains('show')) {
-        // Если корзина уже открыта, закрываем её с анимацией
-        cartContainer.classList.remove('show');
-        cartContainer.classList.add('hide');
+  if (cartContainer.classList.contains('show')) {
+    // Если корзина уже открыта, закрываем её с анимацией
+    cartContainer.classList.remove('show');
+    cartContainer.classList.add('hide');
 
-        // Скрываем элемент после завершения анимации
-        setTimeout(() => {
-          cartContainer.classList.remove('hide');
-        }, 300); // Время анимации (0.3s)
-      } else {
-        // Если корзина закрыта, открываем её
-        cartContainer.classList.add('show');
-      }
-
-      // Скрываем историю заказов, если она открыта
-      historyContainer.classList.remove('show');
-      historyContainer.classList.remove('hide');
-    }
-
-    function toggleHistory() {
-      const historyContainer = document.getElementById('history-container');
-      const cartContainer = document.getElementById('cart-container');
-
-      if (historyContainer.classList.contains('show')) {
-        // Если история уже открыта, закрываем её с анимацией
-        historyContainer.classList.remove('show');
-        historyContainer.classList.add('hide');
-
-        // Скрываем элемент после завершения анимации
-        setTimeout(() => {
-          historyContainer.classList.remove('hide');
-        }, 300); // Время анимации (0.3s)
-      } else {
-        // Если история закрыта, открываем её
-        historyContainer.classList.add('show');
-      }
-
-      // Скрываем корзину, если она открыта
-      cartContainer.classList.remove('show');
+    // Скрываем элемент после завершения анимации
+    setTimeout(() => {
       cartContainer.classList.remove('hide');
-    }
+    }, 300); // Время анимации (0.3s)
+  } else {
+    // Если корзина закрыта, открываем её
+    cartContainer.classList.add('show');
+  }
+
+  // Скрываем историю заказов, если она открыта
+  historyContainer.classList.remove('show');
+  historyContainer.classList.remove('hide');
+}
+
+function toggleHistory() {
+  const historyContainer = document.getElementById('history-container');
+  const cartContainer = document.getElementById('cart-container');
+
+  if (historyContainer.classList.contains('show')) {
+    // Если история уже открыта, закрываем её с анимацией
+    historyContainer.classList.remove('show');
+    historyContainer.classList.add('hide');
+
+    // Скрываем элемент после завершения анимации
+    setTimeout(() => {
+      historyContainer.classList.remove('hide');
+    }, 300); // Время анимации (0.3s)
+  } else {
+    // Если история закрыта, открываем её
+    historyContainer.classList.add('show');
+  }
+
+  // Скрываем корзину, если она открыта
+  cartContainer.classList.remove('show');
+  cartContainer.classList.remove('hide');
+}
 
     // Добавляем функцию очистки кэша после успешной покупки
     function clearCache() {
       localStorage.removeItem(CACHE_KEYS.USER_BALANCE);
       localStorage.removeItem(CACHE_KEYS.ORDERS);
     }
-
-    // Функция для получения даты в МСК (UTC+3)
-    function getMoscowDate() {
-      const now = new Date();
-      // Получаем смещение в минутах для МСК (UTC+3)
-      const mskOffset = 3 * 60;
-      // Получаем локальное смещение в минутах
-      const localOffset = -now.getTimezoneOffset();
-      // Вычисляем разницу в миллисекундах
-      const diffOffset = (mskOffset - localOffset) * 60 * 1000;
-      
-      // Создаем новую дату с учетом смещения
-      const mskDate = new Date(now.getTime() + diffOffset);
-      
-      // Форматируем дату в формате YYYY-MM-DD
-      return mskDate.toISOString().split('T')[0];
-    }
-
-    // Обновляем функцию fetchProducts
-    async function fetchProducts() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (!loadingOverlay) {
-        console.error('Loading overlay not found');
-        return;
-      }
-
-      try {
-        console.log('Fetching products...');
-        showLoading();
-        
-        const url = `${BACKEND_URL}/api/products`;
-        console.log('Request URL:', url);
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Origin': 'https://mounty12312312.github.io'
-          }
-        });
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const products = await response.json();
-        console.log('Products received:', products);
-        displayProducts(products);
-        
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        hideLoading();
-      }
-    }
-
-    // Выносим отображение продуктов в отдельную функцию
-    function displayProducts(products) {
-      const productsContainer = document.getElementById('products');
-      productsContainer.innerHTML = '';
-      products.forEach(product => {
-        const productDiv = document.createElement('div');
-        productDiv.className = 'product';
-        productDiv.setAttribute('data-id', product[0]);
-        productDiv.innerHTML = `
-          <img src="${product[4]}" alt="${product[1]}">
-          <h3>${product[1]}</h3>
-          <p>${product[2]}</p>
-          <p>Цена: ${product[3]}</p>
-          <button onclick="addToCart(${product[0]}, '${product[1]}', ${product[3]})">Добавить в корзину</button>
-        `;
-        productsContainer.appendChild(productDiv);
-      });
-    }
-
-    // Обновляем функцию получения баланса
-    async function fetchUserBalance() {
-      if (!telegramId) {
-        console.error('TelegramId not found');
-        return;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/balance`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ telegramId })
-        });
-        
-        console.log('Balance response status:', response.status);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Balance data received:', data);
-        
-        if (data.success && data.balance !== undefined) {
-          updateUserBalance(data.balance);
-        } else {
-          console.error('Invalid balance data:', data);
-          updateUserBalance(null);
-        }
-      } catch (error) {
-        console.error('Ошибка при получении баланса:', error);
-        updateUserBalance(null);
-      }
-    }
-
-    function addToCart(productId, productName, productPrice) {
-      if (!cartItems[productId]) {
-        cartItems[productId] = { name: productName, price: productPrice, quantity: 1 };
-      } else {
-        cartItems[productId].quantity++;
-      }
-      updateCartDisplay();
-    }
-
-    function updateCartItemQuantity(productId, change) {
-      if (cartItems[productId]) {
-        cartItems[productId].quantity += change;
-        if (cartItems[productId].quantity <= 0) {
-          delete cartItems[productId];
-        }
-        updateCartDisplay();
-      }
-    }
-
-    // Упрощаем функции показа/скрытия загрузки
-    function showLoading() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (loadingOverlay) {
-        loadingOverlay.style.display = 'flex';
-      }
-    }
-
-    function hideLoading() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-      }
-    }
   </script>
 </body>
-</html>
