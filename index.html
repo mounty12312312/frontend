@@ -646,63 +646,41 @@
       background-color: #e61e4d;
     }
     .loading-overlay {
-      display: none !important;
-      visibility: hidden;
-      opacity: 0;
-      pointer-events: none;
-    }
-    #loading-overlay {
-      display: none !important;
-      visibility: hidden;
-      opacity: 0;
-      pointer-events: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
     }
     .loading-text {
-      display: none !important;
-      visibility: hidden;
-      opacity: 0;
-      pointer-events: none;
+      background-color: #ff355f;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    .header-container {
+    .cart-container {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      width: 100%;
+      flex-direction: column;
+      height: calc(100vh - 45px);
     }
-    .back-button {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0;
-      color: #333;
+    .cart-items {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-bottom: 80px; /* Место для кнопки */
     }
-    .cart-container .checkout-button {
-      position: sticky;
+    .checkout-button {
+      position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       width: 90%;
-      margin: 0 auto;
-    }
-    #main-checkout-button {
-      display: none !important;
-    }
-    .loading-overlay,
-    #loading-overlay,
-    .loading-text,
-    .loading-container {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      height: 0 !important;
-      width: 0 !important;
-      position: absolute !important;
-      pointer-events: none !important;
-      z-index: -1 !important;
-    }
-    .load-more-button {
       background-color: #ff355f;
       color: white;
       border: none;
@@ -710,13 +688,12 @@
       border-radius: 12px;
       cursor: pointer;
       transition: background-color 0.2s;
-      width: 90%;
-      margin: 20px auto;
-      display: block;
-      font-size: 14px;
+      font-size: 16px;
+      z-index: 1000;
     }
-    .load-more-button:hover {
-      background-color: #e61e4d;
+    .checkout-button:disabled {
+      background-color: #ffb3c0;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -1316,12 +1293,23 @@
 
     // Функция показа загрузки
     function showLoading() {
-      // Пустая функция, так как оверлей загрузки нам больше не нужен
+      const existingOverlay = document.querySelector('.loading-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'loading-overlay';
+      overlay.innerHTML = '<div class="loading-text">Подождите...</div>';
+      document.body.appendChild(overlay);
     }
 
     // Функция скрытия загрузки
     function hideLoading() {
-      // Пустая функция, так как оверлей загрузки нам больше не нужен
+      const overlay = document.querySelector('.loading-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
     }
 
     // Обновляем функцию fetchProducts
