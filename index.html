@@ -23,7 +23,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 45px; /* Уменьшили высоту шапки */
       background-color: white;
       display: flex;
       justify-content: space-between;
@@ -56,11 +56,11 @@
     .cart-container,
     .history-container {
       position: fixed;
-      top: 60px;
+      top: 45px; /* Обновили отступ сверху */
       right: -400px;
       width: 100%;
       max-width: 400px;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 45px); /* Обновили высоту */
       background-color: white;
       border-left: 1px solid #ccc;
       box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -74,7 +74,8 @@
     .history-container.show {
       right: 0;
     }
-    .cart-item {
+    .cart-item,
+    .order-container {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto auto auto;
       align-items: center;
@@ -83,6 +84,9 @@
       border: 1px solid #e0e0e0;
       border-radius: 12px;
       margin-bottom: 12px;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
     }
     .cart-item-name {
       white-space: nowrap;
@@ -137,13 +141,13 @@
       background-color: #ff355f;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 12px;
       cursor: pointer;
       transition: background-color 0.2s;
+      width: 90%;
       margin: 20px auto;
       display: block;
-      width: 90%;
       font-size: 14px;
     }
     .load-more-button:hover {
@@ -311,27 +315,20 @@
       border: none;
     }
     .order-container {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-direction: row;
-      background-color: #f9f9f9;
+      flex-direction: column;
+      padding: 15px;
     }
     .order-date {
       font-weight: bold;
+      margin-bottom: 8px;
     }
     .order-products {
-      flex-grow: 1;
-      margin-left: 10px;
-      margin-right: 10px;
-      font-size: 14px;
+      margin-bottom: 8px;
     }
     .order-total {
+      color: #ff355f;
       font-weight: bold;
-      text-align: right;
     }
     .loading-overlay {
       position: fixed;
@@ -533,7 +530,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 45px; /* Уменьшили высоту шапки */
       background-color: white;
       display: flex;
       justify-content: space-between;
@@ -554,11 +551,11 @@
     .cart-container,
     .history-container {
       position: fixed;
-      top: 60px;
+      top: 45px; /* Обновили отступ сверху */
       right: -400px;
       width: 100%;
       max-width: 400px;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 45px); /* Обновили высоту */
       background-color: white;
       border-left: 1px solid #ccc;
       box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -623,7 +620,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 45px; /* Уменьшили высоту шапки */
       background-color: white;
       display: flex;
       justify-content: space-between;
@@ -657,11 +654,11 @@
     .history-container {
       display: none;
       position: fixed;
-      top: 60px;
+      top: 45px; /* Обновили отступ сверху */
       right: 0;
       width: 100%;
       max-width: 400px;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 45px); /* Обновили высоту */
       background-color: white;
       border-left: 1px solid #ccc;
       box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -1043,32 +1040,30 @@
       }
 
       orders.forEach(order => {
-        const orderContainer = document.createElement('div');
-        orderContainer.className = 'order-container';
-
-        const orderDate = document.createElement('div');
-        orderDate.className = 'order-date';
-        orderDate.textContent = new Date(order.date).toLocaleDateString();
-
-        const orderProducts = document.createElement('div');
-        orderProducts.className = 'order-products';
-        for (const productId in order.products) {
-          const product = order.products[productId];
-          const productItem = document.createElement('div');
-          productItem.textContent = `${product.name}, ${product.quantity} шт.`;
-          orderProducts.appendChild(productItem);
-        }
-
-        const orderTotal = document.createElement('div');
-        orderTotal.className = 'order-total';
-        orderTotal.textContent = `${order.totalCost} баллов`;
-
-        orderContainer.appendChild(orderDate);
-        orderContainer.appendChild(orderProducts);
-        orderContainer.appendChild(orderTotal);
-
-        historyContainer.appendChild(orderContainer);
+        const orderElement = document.createElement('div');
+        orderElement.className = 'order-container';
+        
+        orderElement.innerHTML = `
+          <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
+          <div class="order-products">
+            ${Object.entries(order.products)
+              .map(([_, product]) => `${product.name} x ${product.quantity}`)
+              .join('<br>')}
+          </div>
+          <div class="order-total">${formatPrice(order.totalCost)}</div>
+        `;
+        
+        historyContainer.appendChild(orderElement);
       });
+
+      // Добавляем кнопку "Загрузить еще"
+      if (orders.length >= 10) {
+        const loadMoreButton = document.createElement('button');
+        loadMoreButton.className = 'load-more-button';
+        loadMoreButton.textContent = 'Загрузить еще';
+        loadMoreButton.onclick = loadMoreOrders;
+        historyContainer.appendChild(loadMoreButton);
+      }
     }
 
     // Добавляем функцию для создания необходимых элементов
@@ -1473,7 +1468,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 60px;
+        height: 45px; /* Уменьшили высоту шапки */
         background-color: white;
         display: flex;
         justify-content: space-between;
