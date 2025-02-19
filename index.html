@@ -485,19 +485,15 @@
       transition: right 0.3s ease-out;
       z-index: 999;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
     }
     .cart-items {
-      flex: 1;
       padding: 20px;
       padding-bottom: 80px;
     }
     .cart-checkout-button {
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      right: 20px;
       width: 80%;
       max-width: 320px;
       background-color: #ff355f;
@@ -508,11 +504,11 @@
       cursor: pointer;
       transition: all 0.3s ease-out;
       font-size: 16px;
-      z-index: 1000;
-      display: none;
+      z-index: 1001;
     }
-    .cart-container.show .cart-checkout-button {
-      display: block;
+    /* Скрываем кнопку на главном экране */
+    button[onclick="showCheckoutForm()"]:not(.cart-checkout-button) {
+      display: none !important;
     }
     .header-container {
       display: flex;
@@ -593,8 +589,6 @@
       transition: right 0.3s ease-out;
       z-index: 999;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
     }
     .cart-items {
       padding: 20px;
@@ -1177,14 +1171,11 @@
     function toggleCart() {
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
-      const mainCheckoutButton = document.querySelector('button[onclick="showCheckoutForm()"]:not(.cart-checkout-button)');
-      
-      if (mainCheckoutButton) {
-        mainCheckoutButton.style.display = 'none';
-      }
+      const checkoutButton = cartContainer.querySelector('.cart-checkout-button');
 
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
+        if (checkoutButton) checkoutButton.style.display = 'none';
         setTimeout(() => {
           cartContainer.style.display = 'none';
         }, 300);
@@ -1194,6 +1185,10 @@
           historyContainer.style.display = 'none';
         }, 300);
         cartContainer.style.display = 'block';
+        if (checkoutButton) {
+          checkoutButton.style.display = 'block';
+          checkoutButton.style.right = '40px'; // Позиционируем кнопку внутри корзины
+        }
         cartContainer.offsetHeight; // Форсируем reflow
         cartContainer.classList.add('show');
         updateCartDisplay();
