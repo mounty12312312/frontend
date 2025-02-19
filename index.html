@@ -982,14 +982,11 @@
     // Обновляем функцию updateCartDisplay
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
-      const cartButton = document.querySelector('[onclick="toggleCart()"]');
-      const checkoutButton = document.querySelector('.checkout-button');
+      const cartButton = document.querySelector('button[onclick="toggleCart()"]');
+      const checkoutButton = document.querySelector('.cart-checkout-button');
       
-      if (!cartItemsList || !cartButton || !checkoutButton) {
-        console.error('Не найдены необходимые элементы DOM');
-        return;
-      }
-
+      if (!cartItemsList || !cartButton) return;
+      
       cartItemsList.innerHTML = '';
       let totalCost = 0;
 
@@ -1000,14 +997,18 @@
         noItemsMessage.style.color = '#888';
         cartItemsList.appendChild(noItemsMessage);
         
-        checkoutButton.disabled = true;
-        checkoutButton.style.opacity = '0.5';
-        checkoutButton.style.cursor = 'not-allowed';
+        if (checkoutButton) {
+          checkoutButton.disabled = true;
+          checkoutButton.style.opacity = '0.5';
+          checkoutButton.style.cursor = 'not-allowed';
+        }
         cartButton.textContent = 'Корзина: 0 Б';
       } else {
-        checkoutButton.disabled = false;
-        checkoutButton.style.opacity = '1';
-        checkoutButton.style.cursor = 'pointer';
+        if (checkoutButton) {
+          checkoutButton.disabled = false;
+          checkoutButton.style.opacity = '1';
+          checkoutButton.style.cursor = 'pointer';
+        }
         
         for (const productId in cartItems) {
           const item = cartItems[productId];
@@ -1016,9 +1017,9 @@
           
           li.innerHTML = `
             <span class="cart-item-name">${item.name}</span>
-            <button class="quantity-button minus" onclick="updateCartItemQuantity('${productId}', -1)"></button>
+            <button class="quantity-button minus" onclick="updateCartItemQuantity('${productId}', -1)">-</button>
             <span class="cart-item-quantity">${item.quantity} x ${formatPrice(item.price)}</span>
-            <button class="quantity-button plus" onclick="updateCartItemQuantity('${productId}', 1)"></button>
+            <button class="quantity-button plus" onclick="updateCartItemQuantity('${productId}', 1)">+</button>
           `;
           
           cartItemsList.appendChild(li);
