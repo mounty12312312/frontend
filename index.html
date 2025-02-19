@@ -267,17 +267,201 @@
       }
     }
     .checkout-button {
-      position: sticky;
-      bottom: 0;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .checkout-button:hover {
+      background-color: #0056b3;
+    }
+    .checkout-form-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .checkout-form {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
       width: 90%;
-      margin: 20px auto;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .form-buttons button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .form-buttons .cancel {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+    }
+    .form-buttons .submit {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    .loading-overlay,
+    #loading-overlay,
+    .loading-text,
+    .loading-container {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      position: absolute !important;
+      pointer-events: none !important;
+      z-index: -1 !important;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      margin: 20px;
+    }
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+    .empty-state-text {
+      color: #6c757d;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .product-card {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #e0e0e0; /* Тонкая серая рамка */
+      border-radius: 8px;
+      padding: 15px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .product-name {
+      font-size: 18px;
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    .product-description {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .product-price {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ff355f;
+      margin-bottom: 12px;
+    }
+    .add-to-cart-button {
+      width: 100%;
+      padding: 8px 16px;
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .add-to-cart-button:hover {
+      background-color: #e61e4d;
+    }
+    /* Обновляем все остальные кнопки с синим цветом */
+    .checkout-button,
+    .form-buttons .submit {
+      background-color: #ff355f;
+    }
+    .checkout-button:hover,
+    .form-buttons .submit:hover {
+      background-color: #e61e4d;
+    }
+    /* Обновляем цвет текста баланса */
+    .product-price,
+    .order-total,
+    #cart-total,
+    #user-balance-value {
+      color: #ff355f;
+    }
+    /* Обновляем стили для мобильных устройств */
+    @media (max-width: 600px) {
+      .product-card {
+        margin: 5px;
+      }
+      #products {
+        padding: 10px;
+        gap: 10px;
+      }
+      .header {
+        padding: 0 10px;
+      }
+      .header-button {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+    }
+    .checkout-button {
       background-color: #ff355f;
       color: white;
       border: none;
       padding: 12px;
-      border-radius: 12px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
+      width: 90%;
+      margin: 20px auto;
+      display: block;
       font-size: 16px;
     }
     .checkout-button:disabled {
@@ -288,43 +472,12 @@
       background-color: #e61e4d;
     }
     .cart-container {
-      position: fixed;
-      top: 45px;
-      right: -400px;
-      width: 100%;
-      max-width: 400px;
-      height: calc(100vh - 45px);
-      background-color: white;
-      border-left: 1px solid #ccc;
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      box-sizing: border-box;
-      transition: right 0.3s ease-out;
-      overflow-y: auto;
-      z-index: 999;
       display: flex;
       flex-direction: column;
     }
     .cart-items {
-      flex: 1;
+      flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 20px;
-    }
-    .checkout-button-container {
-      position: sticky;
-      bottom: 0;
-      background-color: white;
-      padding: 10px 0;
-      margin-top: auto;
-      width: 100%;
-    }
-    .header-center {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .header-right {
-      margin-left: auto;
     }
     .header-buttons {
       display: flex;
@@ -335,11 +488,12 @@
       background-color: #ff355f;
       color: white;
       border: none;
-      padding: 6px 10px;
-      border-radius: 15px;
+      padding: 8px 16px;
+      border-radius: 20px;
       cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 14px;
       white-space: nowrap;
-      margin: 0 5px;
     }
     .checkout-button {
       background-color: #ff355f;
@@ -395,6 +549,27 @@
     }
     .header-right {
       margin-left: auto;
+    }
+    .cart-container,
+    .history-container {
+      position: fixed;
+      top: 45px; /* Обновили отступ сверху */
+      right: -400px;
+      width: 100%;
+      max-width: 400px;
+      height: calc(100vh - 45px); /* Обновили высоту */
+      background-color: white;
+      border-left: 1px solid #ccc;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      transition: right 0.3s ease-out;
+      overflow-y: auto;
+      z-index: 999;
+    }
+    .cart-container.show,
+    .history-container.show {
+      right: 0;
     }
     .cart-item {
       display: grid;
@@ -471,41 +646,63 @@
       background-color: #e61e4d;
     }
     .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loading-overlay {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
     .loading-text {
-      background-color: #ff355f;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
-    .cart-container {
+    .header-container {
       display: flex;
-      flex-direction: column;
-      height: calc(100vh - 45px);
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      width: 100%;
     }
-    .cart-items {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding-bottom: 80px; /* Место для кнопки */
+    .back-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      color: #333;
     }
-    .checkout-button {
-      position: fixed;
+    .cart-container .checkout-button {
+      position: sticky;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       width: 90%;
+      margin: 0 auto;
+    }
+    #main-checkout-button {
+      display: none !important;
+    }
+    .loading-overlay,
+    #loading-overlay,
+    .loading-text,
+    .loading-container {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      position: absolute !important;
+      pointer-events: none !important;
+      z-index: -1 !important;
+    }
+    .load-more-button {
       background-color: #ff355f;
       color: white;
       border: none;
@@ -513,12 +710,13 @@
       border-radius: 12px;
       cursor: pointer;
       transition: background-color 0.2s;
-      font-size: 16px;
-      z-index: 1000;
+      width: 90%;
+      margin: 20px auto;
+      display: block;
+      font-size: 14px;
     }
-    .checkout-button:disabled {
-      background-color: #ffb3c0;
-      cursor: not-allowed;
+    .load-more-button:hover {
+      background-color: #e61e4d;
     }
   </style>
 </head>
@@ -541,9 +739,7 @@
       <button class="back-button" onclick="toggleCart()">✕</button>
     </div>
     <div id="cart-items"></div>
-    <div class="checkout-button-container">
-      <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-    </div>
+    <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
   </div>
   <div class="history-container" id="history-container">
     <div class="header-container">
@@ -1120,23 +1316,12 @@
 
     // Функция показа загрузки
     function showLoading() {
-      const existingOverlay = document.querySelector('.loading-overlay');
-      if (existingOverlay) {
-        existingOverlay.remove();
-      }
-
-      const overlay = document.createElement('div');
-      overlay.className = 'loading-overlay';
-      overlay.innerHTML = '<div class="loading-text">Подождите...</div>';
-      document.body.appendChild(overlay);
+      // Пустая функция, так как оверлей загрузки нам больше не нужен
     }
 
     // Функция скрытия загрузки
     function hideLoading() {
-      const overlay = document.querySelector('.loading-overlay');
-      if (overlay) {
-        overlay.remove();
-      }
+      // Пустая функция, так как оверлей загрузки нам больше не нужен
     }
 
     // Обновляем функцию fetchProducts
