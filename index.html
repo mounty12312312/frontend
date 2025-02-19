@@ -77,7 +77,7 @@
     .cart-item,
     .order-container {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 15px;
       padding: 15px;
@@ -87,6 +87,24 @@
       width: 90%;
       margin-left: auto;
       margin-right: auto;
+      background-color: white;
+    }
+    .order-container {
+      grid-template-columns: 1fr;
+    }
+    .order-date {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .order-products {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .order-total {
+      color: #ff355f;
+      font-weight: bold;
+      text-align: right;
     }
     .cart-item-name {
       white-space: nowrap;
@@ -313,22 +331,6 @@
       background-color: #007bff;
       color: white;
       border: none;
-    }
-    .order-container {
-      display: flex;
-      flex-direction: column;
-      padding: 15px;
-    }
-    .order-date {
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-    .order-products {
-      margin-bottom: 8px;
-    }
-    .order-total {
-      color: #ff355f;
-      font-weight: bold;
     }
     .loading-overlay {
       position: fixed;
