@@ -25,13 +25,21 @@
       right: 0;
       height: 60px;
       background-color: white;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       padding: 0 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
       box-sizing: border-box;
+    }
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .header-right {
+      margin-left: auto;
     }
     .header h1 {
       margin: 0;
@@ -566,8 +574,8 @@
       right: 0;
       height: 60px;
       background-color: white;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       padding: 0 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -575,21 +583,21 @@
       box-sizing: border-box;
     }
 
-    .header-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    .header-button {
-      font-size: 13px; /* Уменьшаем размер шрифта */
+    .header-right {
+      margin-left: auto;
     }
 
     .cart-container,
     .history-container {
       position: fixed;
       top: 60px;
-      right: -100%;
+      right: -400px;
       width: 100%;
       max-width: 400px;
       height: calc(100vh - 60px);
@@ -610,7 +618,7 @@
 
     .cart-item {
       display: grid;
-      grid-template-columns: 30px 1fr 100px;
+      grid-template-columns: 1fr auto auto auto;
       align-items: center;
       gap: 10px;
       padding: 10px;
@@ -625,14 +633,12 @@
       text-overflow: ellipsis;
     }
 
-    .quantity-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: flex-end;
+    .cart-item-quantity {
+      white-space: nowrap;
+      text-align: right;
     }
 
-    .quantity-controls button {
+    .quantity-button {
       width: 24px;
       height: 24px;
       border: none;
@@ -646,16 +652,8 @@
       font-size: 16px;
     }
 
-    .quantity-controls span {
-      min-width: 60px;
-      text-align: center;
-    }
-
-    .product-price {
-      font-size: 16px;
-      font-weight: bold;
-      color: #ff355f;
-      margin-bottom: 12px;
+    .quantity-button:hover {
+      background-color: #e61e4d;
     }
 
     #cart-total {
@@ -1143,11 +1141,10 @@
           li.className = 'cart-item';
           
           li.innerHTML = `
-            <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
             <span class="cart-item-name">${item.name}</span>
-            <div class="quantity-controls">
-              <span>${item.quantity} x ${formatPrice(item.price)}</span>
-            </div>
+            <button class="quantity-button" onclick="updateCartItemQuantity('${productId}', -1)">-</button>
+            <span class="cart-item-quantity">${item.quantity} x ${formatPrice(item.price)}</span>
+            <button class="quantity-button" onclick="updateCartItemQuantity('${productId}', 1)">+</button>
           `;
           
           cartItemsList.appendChild(li);
@@ -1399,112 +1396,6 @@
       });
     }
 
-    // Обновляем функцию обновления корзины
-    function updateCartDisplay() {
-      const cartItemsList = document.getElementById('cart-items');
-      const cartButton = document.querySelector('[onclick="toggleCart()"]');
-      const checkoutButton = document.querySelector('.checkout-button');
-      
-      if (!cartItemsList || !cartButton || !checkoutButton) {
-        console.error('Не найдены необходимые элементы DOM');
-        return;
-      }
-
-      cartItemsList.innerHTML = '';
-      let totalCost = 0;
-
-      if (Object.keys(cartItems).length === 0) {
-        const noItemsMessage = document.createElement('p');
-        noItemsMessage.textContent = 'Корзина пуста';
-        noItemsMessage.style.textAlign = 'center';
-        noItemsMessage.style.color = '#888';
-        cartItemsList.appendChild(noItemsMessage);
-        
-        checkoutButton.disabled = true;
-        checkoutButton.style.opacity = '0.5';
-        checkoutButton.style.cursor = 'not-allowed';
-        cartButton.textContent = 'Корзина: 0 Б';
-      } else {
-        checkoutButton.disabled = false;
-        checkoutButton.style.opacity = '1';
-        checkoutButton.style.cursor = 'pointer';
-        
-        for (const productId in cartItems) {
-          const item = cartItems[productId];
-          const li = document.createElement('li');
-          li.className = 'cart-item';
-          
-          li.innerHTML = `
-            <button onclick="updateCartItemQuantity('${productId}', -1)">-</button>
-            <span class="cart-item-name">${item.name}</span>
-            <div class="quantity-controls">
-              <span>${item.quantity} x ${formatPrice(item.price)}</span>
-            </div>
-          `;
-          
-          cartItemsList.appendChild(li);
-          totalCost += item.quantity * item.price;
-        }
-        
-        cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
-      }
-    }
-
-    // Обновляем функцию отображения баланса
-    function updateUserBalance(balance) {
-      const balanceValue = document.getElementById('user-balance-value');
-      const balanceText = document.getElementById('user-balance-text');
-      
-      if (balance !== null) {
-        balanceValue.textContent = formatPrice(balance);
-        balanceValue.style.display = 'block';
-        balanceText.style.display = 'none';
-      } else {
-        balanceValue.style.display = 'none';
-        balanceText.textContent = 'Нет баланса';
-        balanceText.style.display = 'block';
-      }
-    }
-
-    // Обновляем функцию отображения истории заказов
-    function displayOrders(orders) {
-      const historyContainer = document.getElementById('history-items');
-      if (!historyContainer) return;
-
-      historyContainer.innerHTML = '';
-
-      if (!orders || orders.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-          <div class="empty-state-icon">📋</div>
-          <div class="empty-state-text">История заказов пуста</div>
-        `;
-        historyContainer.appendChild(emptyState);
-        return;
-      }
-
-      orders.forEach(order => {
-        const orderElement = document.createElement('div');
-        orderElement.className = 'order-container';
-        
-        // Проверяем наличие products в заказе
-        const productsHtml = order.products ? 
-          Object.entries(order.products)
-            .map(([_, product]) => `${product.name} x ${product.quantity}`)
-            .join('<br>')
-          : 'Нет данных о продуктах';
-        
-        orderElement.innerHTML = `
-          <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-          <div class="order-products">${productsHtml}</div>
-          <div class="order-total">${formatPrice(order.totalCost)}</div>
-        `;
-        
-        historyContainer.appendChild(orderElement);
-      });
-    }
-
     // Обновляем стили для шапки
     const headerStyles = `
       .header {
@@ -1514,13 +1405,23 @@
         right: 0;
         height: 60px;
         background-color: white;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
+        display: flex;
+        justify-content: space-between;
         align-items: center;
         padding: 0 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         z-index: 1000;
         box-sizing: border-box;
+      }
+
+      .header-center {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .header-right {
+        margin-left: auto;
       }
 
       .header-buttons {
@@ -1583,18 +1484,6 @@
         white-space: nowrap;
       }
 
-      .header-button {
-        background-color: #ff355f;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 20px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        font-size: 14px;
-        white-space: nowrap;
-      }
-
       #cart-total {
         display: none;
       }
@@ -1609,8 +1498,10 @@
             <span id="user-balance-value">0 Б</span>
             <span id="user-balance-text" style="display: none;">Нет баланса</span>
           </div>
-          <div class="header-buttons">
+          <div class="header-center">
             <button class="header-button" onclick="toggleCart()">Корзина: 0 Б</button>
+          </div>
+          <div class="header-right">
             <button class="header-button" onclick="toggleHistory()">История заказов</button>
           </div>
         `;
