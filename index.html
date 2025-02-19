@@ -494,11 +494,12 @@
       padding-bottom: 80px;
     }
     .cart-checkout-button {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       width: 80%;
+      max-width: 320px;
       background-color: #ff355f;
       color: white;
       border: none;
@@ -507,12 +508,11 @@
       cursor: pointer;
       transition: all 0.3s ease-out;
       font-size: 16px;
-      opacity: 0;
-      transform: translateX(-50%) translateY(20px);
+      z-index: 1000;
+      display: none;
     }
     .cart-container.show .cart-checkout-button {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      display: block;
     }
     .header-container {
       display: flex;
@@ -574,6 +574,52 @@
     }
     .cart-items {
       padding-bottom: 60px; /* Отступ для кнопки оформления заказа */
+    }
+    /* Полностью скрываем кнопку на главном экране */
+    button[onclick="showCheckoutForm()"] {
+      display: none !important;
+    }
+    .cart-container {
+      position: fixed;
+      top: 45px;
+      right: -400px;
+      width: 100%;
+      max-width: 400px;
+      height: calc(100vh - 45px);
+      background-color: white;
+      border-left: 1px solid #ccc;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      transition: right 0.3s ease-out;
+      z-index: 999;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-items {
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+    .cart-checkout-button {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 320px;
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease-out;
+      font-size: 16px;
+      z-index: 1000;
+      display: none;
+    }
+    .cart-container.show .cart-checkout-button {
+      display: block;
     }
   </style>
 </head>
@@ -1131,7 +1177,11 @@
     function toggleCart() {
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
-      const checkoutButton = cartContainer.querySelector('.cart-checkout-button');
+      const mainCheckoutButton = document.querySelector('button[onclick="showCheckoutForm()"]:not(.cart-checkout-button)');
+      
+      if (mainCheckoutButton) {
+        mainCheckoutButton.style.display = 'none';
+      }
 
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
@@ -1144,8 +1194,7 @@
           historyContainer.style.display = 'none';
         }, 300);
         cartContainer.style.display = 'block';
-        // Форсируем reflow
-        cartContainer.offsetHeight;
+        cartContainer.offsetHeight; // Форсируем reflow
         cartContainer.classList.add('show');
         updateCartDisplay();
       }
