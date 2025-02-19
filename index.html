@@ -25,26 +25,33 @@
       right: 0;
       height: 60px;
       background-color: white;
-      display: grid;
-      grid-template-columns: auto minmax(auto, 1fr) auto;
-      gap: 20px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
       box-sizing: border-box;
     }
     .header-button {
-      font-size: 12px;
-      padding: 8px 12px;
+      font-size: 11px;
+      padding: 6px 10px;
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin: 0 5px;
     }
     .balance-container {
-      font-size: 12px;
-      min-width: 80px;
-      flex-shrink: 0;
+      font-size: 11px;
+      padding: 6px 10px;
+      background-color: #f8f9fa;
+      border-radius: 15px;
+      border: 1px solid #e0e0e0;
+      white-space: nowrap;
+      margin-right: 5px;
     }
     .cart-container,
     .history-container {
@@ -531,7 +538,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
       box-sizing: border-box;
@@ -621,22 +628,30 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
       box-sizing: border-box;
     }
     .header-button {
-      font-size: 12px;
-      padding: 8px 12px;
+      font-size: 11px;
+      padding: 6px 10px;
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 150px;
+      margin: 0 5px;
     }
     .balance-container {
-      font-size: 12px;
-      min-width: 80px;
+      font-size: 11px;
+      padding: 6px 10px;
+      background-color: #f8f9fa;
+      border-radius: 15px;
+      border: 1px solid #e0e0e0;
+      white-space: nowrap;
+      margin-right: 5px;
     }
     .cart-container,
     .history-container {
@@ -1299,29 +1314,28 @@
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
 
+      cartContainer.style.display = 'block';
+      
       if (cartContainer.classList.contains('show')) {
-        // Если корзина уже открыта, закрываем её с анимацией
         cartContainer.classList.remove('show');
-        cartContainer.classList.add('hide');
-
-        // Скрываем элемент после завершения анимации
         setTimeout(() => {
-          cartContainer.classList.remove('hide');
-        }, 300); // Время анимации (0.3s)
+          cartContainer.style.display = 'none';
+        }, 300);
       } else {
-        // Если корзина закрыта, открываем её
+        historyContainer.classList.remove('show');
+        setTimeout(() => {
+          historyContainer.style.display = 'none';
+        }, 300);
         cartContainer.classList.add('show');
       }
-
-      // Скрываем историю заказов, если она открыта
-      historyContainer.classList.remove('show');
-      historyContainer.classList.remove('hide');
     }
 
     function toggleHistory() {
       const historyContainer = document.getElementById('history-container');
       const cartContainer = document.getElementById('cart-container');
 
+      historyContainer.style.display = 'block';
+      
       if (historyContainer.classList.contains('show')) {
         historyContainer.classList.remove('show');
         setTimeout(() => {
@@ -1332,9 +1346,6 @@
         setTimeout(() => {
           cartContainer.style.display = 'none';
         }, 300);
-        historyContainer.style.display = 'block';
-        // Форсируем reflow
-        historyContainer.offsetHeight;
         historyContainer.classList.add('show');
       }
     }
@@ -1347,18 +1358,12 @@
 
     // Функция показа загрузки
     function showLoading() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (loadingOverlay) {
-        loadingOverlay.style.display = 'flex';
-      }
+      // Пустая функция, так как оверлей загрузки нам больше не нужен
     }
 
     // Функция скрытия загрузки
     function hideLoading() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-      }
+      // Пустая функция, так как оверлей загрузки нам больше не нужен
     }
 
     // Обновляем функцию fetchProducts
@@ -1473,7 +1478,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 20px;
+        padding: 0 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         z-index: 1000;
         box-sizing: border-box;
@@ -1499,12 +1504,11 @@
         background-color: #ff355f;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 6px 10px;
+        border-radius: 15px;
         cursor: pointer;
-        transition: background-color 0.2s;
-        font-size: 14px;
         white-space: nowrap;
+        margin: 0 5px;
       }
 
       .checkout-button {
@@ -1541,8 +1545,8 @@
 
       .balance-container {
         background-color: #f8f9fa;
-        border-radius: 20px;
-        padding: 8px 16px;
+        border-radius: 15px;
+        padding: 6px 10px;
         display: inline-flex;
         align-items: center;
         border: 1px solid #e0e0e0;
@@ -1563,13 +1567,15 @@
             <span id="user-balance-value">0 Б</span>
             <span id="user-balance-text" style="display: none;">Нет баланса</span>
           </div>
-          <div style="text-align: center;">
-            <button class="header-button" onclick="toggleCart()">Корзина: 0 Б</button>
-          </div>
-          <div style="text-align: right;">
-            <button class="header-button" onclick="toggleHistory()">История заказов</button>
-          </div>
+          <button class="header-button" onclick="toggleCart()">Корзина: 0 Б</button>
+          <button class="header-button" onclick="toggleHistory()">История заказов</button>
         `;
+      }
+
+      // Скрываем оверлей загрузки
+      const loadingOverlay = document.getElementById('loading-overlay');
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
       }
     });
 
