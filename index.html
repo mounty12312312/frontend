@@ -77,20 +77,27 @@
     .cart-item,
     .order-container {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       align-items: center;
       gap: 15px;
       padding: 15px;
       border: 1px solid #e0e0e0;
       border-radius: 12px;
       margin-bottom: 12px;
-      width: 90%;
+      width: 95%;
       margin-left: auto;
       margin-right: auto;
       background-color: white;
     }
     .order-container {
-      grid-template-columns: 1fr;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      width: 95%;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: white;
     }
     .order-date {
       font-size: 14px;
@@ -573,13 +580,17 @@
     }
     .cart-item {
       display: grid;
-      grid-template-columns: 1fr auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       align-items: center;
-      gap: 10px;
-      padding: 10px;
+      gap: 15px;
+      padding: 15px;
       border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      width: 95%;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: white;
     }
     .cart-item-name {
       white-space: nowrap;
@@ -678,7 +689,7 @@
     }
     .cart-item {
       display: grid;
-      grid-template-columns: 1fr auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       align-items: center;
       gap: 15px;
       padding: 15px;
@@ -748,6 +759,24 @@
     }
     .load-more-button:hover {
       background-color: #e61e4d;
+    }
+    .loading-overlay {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loading-overlay {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-text {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -1045,15 +1074,11 @@
         const orderElement = document.createElement('div');
         orderElement.className = 'order-container';
         
-        orderElement.innerHTML = `
-          <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-          <div class="order-products">
-            ${Object.entries(order.products)
-              .map(([_, product]) => `${product.name} x ${product.quantity}`)
-              .join('<br>')}
-          </div>
-          <div class="order-total">${formatPrice(order.totalCost)}</div>
-        `;
+        orderElement.innerHTML = order.products ? `
+          <div>${new Date(order.date).toLocaleDateString()}</div>
+          <div>${Object.values(order.products).map(p => `${p.name} x ${p.quantity}`).join('<br>')}</div>
+          <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(order.totalCost)}</div>
+        ` : 'Нет данных о заказе';
         
         historyContainer.appendChild(orderElement);
       });
@@ -1580,5 +1605,15 @@
     const styleSheet = document.createElement('style');
     styleSheet.textContent = headerStyles;
     document.head.appendChild(styleSheet);
+
+    // Добавляем обработчик для удаления плашки загрузки
+    document.addEventListener('DOMContentLoaded', () => {
+      const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text');
+      loadingElements.forEach(el => {
+        if (el) {
+          el.remove();
+        }
+      });
+    });
   </script>
 </body>
