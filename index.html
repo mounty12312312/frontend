@@ -663,6 +663,61 @@
       opacity: 0;
       pointer-events: none;
     }
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .back-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      color: #333;
+    }
+    .cart-container .checkout-button {
+      position: sticky;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      margin: 0 auto;
+    }
+    #main-checkout-button {
+      display: none !important;
+    }
+    .loading-overlay,
+    #loading-overlay,
+    .loading-text,
+    .loading-container {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      position: absolute !important;
+      pointer-events: none !important;
+      z-index: -1 !important;
+    }
+    .load-more-button {
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 90%;
+      margin: 20px auto;
+      display: block;
+      font-size: 14px;
+    }
+    .load-more-button:hover {
+      background-color: #e61e4d;
+    }
   </style>
 </head>
 <body>
@@ -683,11 +738,8 @@
       <h2>Корзина</h2>
       <button class="back-button" onclick="toggleCart()">✕</button>
     </div>
-    <ul id="cart-items"></ul>
-    <div class="cart-bottom">
-      <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-      <div id="cart-total">0 баллов</div>
-    </div>
+    <div id="cart-items"></div>
+    <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
   </div>
   <div class="history-container" id="history-container">
     <div class="header-container">
@@ -929,11 +981,9 @@
       const historyContainer = document.getElementById('history-items');
       if (!historyContainer) return;
 
-      // Удаляем существующую кнопку "Загрузить еще" если она есть
-      const existingLoadMoreButton = document.querySelector('.load-more-button');
-      if (existingLoadMoreButton) {
-        existingLoadMoreButton.remove();
-      }
+      // Удаляем все существующие кнопки "Загрузить еще"
+      const existingButtons = document.querySelectorAll('.load-more-button');
+      existingButtons.forEach(button => button.remove());
 
       if (!isLoadMore) {
         historyContainer.innerHTML = '';
@@ -965,11 +1015,11 @@
           
           historyContainer.appendChild(orderElement);
         } catch (error) {
-          // Пропускаем некорректный заказ без логирования ошибки
+          // Пропускаем некорректный заказ
         }
       });
 
-      // Добавляем кнопку "Загрузить еще" в конец
+      // Добавляем одну кнопку "Загрузить еще" в конец
       if (orders.length >= 10) {
         const loadMoreButton = document.createElement('button');
         loadMoreButton.className = 'load-more-button';
