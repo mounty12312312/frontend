@@ -491,7 +491,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 20px;
-      margin-bottom: 60px; /* Отступ для кнопки */
+      padding-bottom: 80px; /* Отступ для кнопки */
     }
     .cart-checkout-button-container {
       position: fixed;
@@ -503,18 +503,19 @@
       border-top: 1px solid #eee;
     }
     .cart-checkout-button {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 400px;
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      width: 90%;
+      margin: 0 auto;
       background-color: #ff355f;
       color: white;
       border: none;
       padding: 15px;
       font-size: 16px;
       cursor: pointer;
-      z-index: 1000;
-      display: block; /* Явно указываем display */
+      border-radius: 12px;
     }
     .cart-checkout-button:disabled {
       opacity: 0.5;
@@ -1247,21 +1248,6 @@
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
 
-      // Проверяем, существует ли уже кнопка
-      let checkoutButton = cartContainer.querySelector('.cart-checkout-button');
-      
-      if (!checkoutButton) {
-        cartContainer.innerHTML = `
-          <div class="header-container">
-            <h2>Корзина</h2>
-            <button class="back-button" onclick="toggleCart()">✕</button>
-          </div>
-          <div class="cart-items" id="cart-items"></div>
-          <button class="cart-checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-        `;
-        console.log('Кнопка добавлена в DOM');
-      }
-
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
         setTimeout(() => {
@@ -1275,16 +1261,6 @@
         cartContainer.style.display = 'block';
         cartContainer.offsetHeight;
         cartContainer.classList.add('show');
-        
-        // Проверяем видимость кнопки после открытия корзины
-        checkoutButton = cartContainer.querySelector('.cart-checkout-button');
-        if (checkoutButton) {
-          checkoutButton.style.display = 'block';
-          console.log('Кнопка видима:', checkoutButton.style.display);
-        } else {
-          console.log('Кнопка не найдена в DOM');
-        }
-        
         updateCartDisplay();
       }
     }
