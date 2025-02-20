@@ -1042,22 +1042,48 @@
       }
     }
 
-    function addToCart(productId, productName, productPrice) {
-      if (!cartItems[productId]) {
-        cartItems[productId] = { name: productName, price: productPrice, quantity: 1 };
-      } else {
-        cartItems[productId].quantity++;
+    // Функции для работы с кешем корзины
+    function saveCartToCache() {
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+
+    function loadCartFromCache() {
+      const cached = localStorage.getItem('cartItems');
+      if (cached) {
+        cartItems = JSON.parse(cached);
+        updateCartDisplay();
       }
+    }
+
+    function clearCartCache() {
+      localStorage.removeItem('cartItems');
+      cartItems = {};
       updateCartDisplay();
     }
 
-    function updateCartItemQuantity(productId, change) {
+    // Обновляем функцию добавления в корзину
+    function addToCart(productId, name, price) {
+      if (!cartItems[productId]) {
+        cartItems[productId] = {
+          name,
+          price,
+          quantity: 0
+        };
+      }
+      cartItems[productId].quantity++;
+      updateCartDisplay();
+      saveCartToCache(); // Сохраняем в кеш
+    }
+
+    // Обновляем функцию изменения количества
+    function updateCartItemQuantity(productId, delta) {
       if (cartItems[productId]) {
-        cartItems[productId].quantity += change;
+        cartItems[productId].quantity += delta;
         if (cartItems[productId].quantity <= 0) {
           delete cartItems[productId];
         }
         updateCartDisplay();
+        saveCartToCache(); // Сохраняем в кеш
       }
     }
 
