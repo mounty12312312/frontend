@@ -486,25 +486,24 @@
       z-index: 999;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow-x: hidden;
+    }
+    .cart-container.show {
+      right: 0;
     }
     .cart-items {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 20px;
-      margin-bottom: 74px; /* Высота кнопки + отступы */
     }
-    .cart-checkout-button-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 15px 20px;
-      background-color: white;
+    .checkout-container {
+      padding: 20px;
+      background: white;
       border-top: 1px solid #eee;
-      box-sizing: border-box;
     }
-    .cart-checkout-button {
+    .checkout-button {
+      display: none;
       width: 100%;
       height: 44px;
       background-color: #ff355f;
@@ -513,15 +512,9 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.5;
-      pointer-events: none;
     }
-    .cart-checkout-button.active {
-      opacity: 1;
-      pointer-events: auto;
+    .checkout-button.visible {
+      display: block;
     }
     .header-container {
       display: flex;
@@ -566,46 +559,6 @@
     /* Скрываем кнопку на главном экране */
     #main-checkout-button {
       display: none !important;
-    }
-    .cart-checkout-button {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: #ff355f;
-      color: white;
-      border: none;
-      padding: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      font-size: 16px;
-      z-index: 1000;
-    }
-    .cart-items {
-      padding-bottom: 60px; /* Отступ для кнопки оформления заказа */
-    }
-    /* Полностью скрываем кнопку на главном экране */
-    button[onclick="showCheckoutForm()"] {
-      display: none !important;
-    }
-    .cart-container {
-      position: fixed;
-      top: 45px;
-      right: -400px;
-      width: 100%;
-      max-width: 400px;
-      height: calc(100vh - 45px);
-      background-color: white;
-      border-left: 1px solid #ccc;
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-      box-sizing: border-box;
-      transition: right 0.3s ease-out;
-      z-index: 999;
-      overflow-y: auto;
-    }
-    .cart-items {
-      padding: 20px;
-      padding-bottom: 80px;
     }
     .cart-checkout-button {
       position: fixed;
@@ -674,8 +627,8 @@
       <button class="back-button" onclick="toggleCart()">✕</button>
     </div>
     <div id="cart-items"></div>
-    <div class="cart-checkout-button-container">
-      <button class="cart-checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+    <div class="checkout-container">
+      <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
     </div>
   </div>
   <div class="history-container" id="history-container">
@@ -1125,7 +1078,7 @@
     // Обновляем функцию updateCartDisplay
     function updateCartDisplay() {
       const cartItemsList = document.getElementById('cart-items');
-      const checkoutButton = document.querySelector('.cart-checkout-button');
+      const checkoutButton = document.querySelector('.checkout-button');
       
       console.log('Обновление отображения корзины');
       console.log('Кнопка найдена:', !!checkoutButton);
@@ -1138,19 +1091,9 @@
       
       if (!hasItems) {
         cartItemsList.innerHTML = '<p style="text-align: center; color: #888;">Корзина пуста</p>';
-        if (checkoutButton) {
-          checkoutButton.classList.remove('active');
-          checkoutButton.disabled = true;
-          checkoutButton.style.opacity = '0.5';
-          console.log('Кнопка отключена');
-        }
+        checkoutButton.classList.remove('visible');
       } else {
-        if (checkoutButton) {
-          checkoutButton.classList.add('active');
-          checkoutButton.disabled = false;
-          checkoutButton.style.opacity = '1';
-          console.log('Кнопка включена');
-        }
+        checkoutButton.classList.add('visible');
         
         for (const productId in cartItems) {
           const item = cartItems[productId];
@@ -1254,21 +1197,12 @@
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
 
-      // Всегда обновляем HTML при открытии
-      cartContainer.innerHTML = createCartHTML();
-
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
-        setTimeout(() => {
-          cartContainer.style.display = 'none';
-        }, 300);
       } else {
-        historyContainer.classList.remove('show');
-        setTimeout(() => {
-          historyContainer.style.display = 'none';
-        }, 300);
-        cartContainer.style.display = 'block';
-        cartContainer.offsetHeight;
+        if (historyContainer) {
+          historyContainer.classList.remove('show');
+        }
         cartContainer.classList.add('show');
         updateCartDisplay();
       }
@@ -1424,8 +1358,8 @@
           <button class="back-button" onclick="toggleCart()">✕</button>
         </div>
         <div class="cart-items" id="cart-items"></div>
-        <div class="cart-checkout-button-container">
-          <button class="cart-checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+        <div class="checkout-container">
+          <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
         </div>
       `;
     }
