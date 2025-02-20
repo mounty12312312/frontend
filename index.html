@@ -491,14 +491,14 @@
       flex: 1;
       overflow-y: auto;
       padding: 20px;
-      padding-bottom: 80px;
+      padding-bottom: 60px; /* Уменьшаем отступ */
     }
     .cart-checkout-button-container {
-      position: sticky;
+      position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 0;
       background-color: white;
       border-top: 1px solid #eee;
     }
@@ -1134,35 +1134,29 @@
     const ordersPerPage = 5;
 
     async function fetchOrderHistory() {
+      if (!telegramId) {
+        console.error('TelegramId not found');
+        return;
+      }
+
       try {
-        // Проверяем кэш
-        const cached = localStorage.getItem(CACHE_KEYS.ORDERS);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            orders = data;
-            displayOrders(orders);
-            return;
-          }
-        }
-
-        const response = await fetch(`${BACKEND_URL}/api/orders?telegramId=${telegramId}`);
+        const response = await fetch(`${BACKEND_URL}/api/orders?telegram_id=${telegramId}`);
         if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const userOrders = await response.json();
-        orders = userOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        // Сохраняем в кэш
-        localStorage.setItem(CACHE_KEYS.ORDERS, JSON.stringify({
-          data: orders,
-          timestamp: Date.now()
-        }));
-
-        displayOrders(orders);
+        
+        const orders = await response.json();
+        console.log('Полученные заказы:', orders);
+        
+        if (orders && Array.isArray(orders)) {
+          displayOrders(orders);
+        } else {
+          console.error('Неверный формат данных заказов:', orders);
+          displayOrders([]);
+        }
       } catch (error) {
         console.error('Ошибка при получении истории заказов:', error);
-        alert('Ошибка при получении истории заказов');
+        displayOrders([]);
       }
     }
 
