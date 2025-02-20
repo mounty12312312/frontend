@@ -624,10 +624,35 @@
     .cart-container.show .cart-checkout-button {
       display: block;
     }
+    /* Стили для плашки загрузки */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .loading-text {
+      background-color: #ff355f;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    /* Скрываем кнопку на главном экране */
+    button.cart-checkout-button:not(.cart-container *) {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+  <div class="loading-overlay" id="loading-overlay">
     <div class="loading-text">Подождите...</div>
   </div>
   <div class="header">
@@ -788,35 +813,38 @@
     }
 
     async function submitOrder() {
-      const senderName = document.getElementById('sender-name').value;
-      const senderPhone = document.getElementById('sender-phone').value;
-      const recipient = document.getElementById('recipient').value;
-      const phone = document.getElementById('phone').value;
-      const city = document.getElementById('city').value;
-      const address = document.getElementById('address').value;
-
-      // Проверяем заполнение обязательных полей
-      if (!senderName || !senderPhone || !recipient || !phone || !city || !address) {
-        alert('Пожалуйста, заполните все обязательные поля');
-        return;
-      }
-
-      // Добавляем данные доставки к заказу
-      const deliveryInfo = {
-        senderName,
-        senderPhone,
-        recipient,
-        phone,
-        city,
-        address
-      };
-
+      showLoading();
       try {
+        const senderName = document.getElementById('sender-name').value;
+        const senderPhone = document.getElementById('sender-phone').value;
+        const recipient = document.getElementById('recipient').value;
+        const phone = document.getElementById('phone').value;
+        const city = document.getElementById('city').value;
+        const address = document.getElementById('address').value;
+
+        // Проверяем заполнение обязательных полей
+        if (!senderName || !senderPhone || !recipient || !phone || !city || !address) {
+          alert('Пожалуйста, заполните все обязательные поля');
+          return;
+        }
+
+        // Добавляем данные доставки к заказу
+        const deliveryInfo = {
+          senderName,
+          senderPhone,
+          recipient,
+          phone,
+          city,
+          address
+        };
+
         await checkout(deliveryInfo);
         hideCheckoutForm();
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
         alert('Произошла ошибка при оформлении заказа');
+      } finally {
+        hideLoading();
       }
     }
 
@@ -828,8 +856,6 @@
       }
 
       try {
-        showLoading();
-
         const orderData = {
           telegramId,
           products: cartItems,
@@ -879,8 +905,6 @@
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
         alert(error.message || 'Произошла ошибка при оформлении заказа');
-      } finally {
-        hideLoading();
       }
     }
 
@@ -1232,12 +1256,18 @@
 
     // Функция показа загрузки
     function showLoading() {
-      // Пустая функция, так как оверлей загрузки нам больше не нужен
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+      }
     }
 
     // Функция скрытия загрузки
     function hideLoading() {
-      // Пустая функция, так как оверлей загрузки нам больше не нужен
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
     }
 
     // Обновляем функцию fetchProducts
