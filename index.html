@@ -1140,7 +1140,8 @@
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/orders?telegram_id=${telegramId}`);
+        const response = await fetch(`${BACKEND_URL}/api/orders/${telegramId}`);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
