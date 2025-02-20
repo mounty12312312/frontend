@@ -1158,7 +1158,9 @@
           totalCost += item.quantity * item.price;
         }
         
-        checkoutButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
+        if (checkoutButton) {
+          checkoutButton.textContent = `Оформить заказ • ${formatPrice(totalCost)}`;
+        }
       }
     }
 
@@ -1246,11 +1248,21 @@
     function toggleCart() {
       const cartContainer = document.getElementById('cart-container');
       const historyContainer = document.getElementById('history-container');
-      const checkoutButton = cartContainer.querySelector('.cart-checkout-button');
+
+      if (!cartContainer.innerHTML) {
+        // Инициализируем HTML структуру корзины при первом открытии
+        cartContainer.innerHTML = `
+          <div class="header-container">
+            <h2>Корзина</h2>
+            <button class="back-button" onclick="toggleCart()">✕</button>
+          </div>
+          <div class="cart-items" id="cart-items"></div>
+          <button class="cart-checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
+        `;
+      }
 
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
-        if (checkoutButton) checkoutButton.style.display = 'none';
         setTimeout(() => {
           cartContainer.style.display = 'none';
         }, 300);
@@ -1260,10 +1272,6 @@
           historyContainer.style.display = 'none';
         }, 300);
         cartContainer.style.display = 'block';
-        if (checkoutButton) {
-          checkoutButton.style.display = 'block';
-          checkoutButton.style.right = '40px'; // Позиционируем кнопку внутри корзины
-        }
         cartContainer.offsetHeight; // Форсируем reflow
         cartContainer.classList.add('show');
         updateCartDisplay();
