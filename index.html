@@ -777,10 +777,12 @@
     }
 
     async function submitOrder() {
-      const loadingOverlay = document.getElementById('loading-overlay');
-      const loadingText = loadingOverlay.querySelector('.loading-text');
-      loadingText.textContent = 'Оформляем заказ...';
       showLoading();
+      // Обновляем текст в плашке загрузки
+      const loadingText = document.querySelector('.loading-overlay .loading-text');
+      if (loadingText) {
+        loadingText.textContent = 'Оформляем заказ...';
+      }
 
       try {
         const senderName = document.getElementById('sender-name').value;
@@ -807,7 +809,10 @@
         await checkout(deliveryInfo);
         hideCheckoutForm();
         clearCartCache();
-        loadingText.textContent = 'Подождите...'; // Возвращаем исходный текст
+        // Возвращаем исходный текст
+        if (loadingText) {
+          loadingText.textContent = 'Подождите...';
+        }
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
         alert('Произошла ошибка при оформлении заказа');
