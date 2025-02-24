@@ -16,14 +16,14 @@
       color: black;
       overflow-x: hidden;
       width: 100%;
-      padding-top: 80px; /* Отступ для header */
+      padding-top: 60px; /* Уменьшаем отступ для body */
     }
     .header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 45px; /* Уменьшили высоту шапки */
+      height: 36px;
       background-color: white;
       display: flex;
       justify-content: space-between;
@@ -34,7 +34,7 @@
       box-sizing: border-box;
     }
     .header-button {
-      font-size: 11px;
+      font-size: 10px;
       padding: 6px 10px;
       background-color: #ff355f;
       color: white;
@@ -45,7 +45,7 @@
       margin: 0 5px;
     }
     .balance-container {
-      font-size: 14px;
+      font-size: 10px;
       padding: 6px 10px;
       background-color: white;
       border-radius: 15px;
@@ -57,11 +57,11 @@
     .cart-container,
     .history-container {
       position: fixed;
-      top: 45px; /* Обновили отступ сверху */
+      top: 36px; /* Обновляем отступ сверху для контейнеров */
       right: -400px;
       width: 100%;
       max-width: 400px;
-      height: calc(100vh - 45px); /* Обновили высоту */
+      height: calc(100vh - 36px); /* Обновляем высоту */
       background-color: white;
       border-left: 1px solid #ccc;
       box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -187,6 +187,7 @@
       max-width: 100%;
       box-sizing: border-box;
       margin: 0 auto;
+      padding-top: 10px;
     }
     .product {
       border: 1px solid #ccc;
@@ -478,11 +479,11 @@
     }
     .cart-container {
       position: fixed;
-      top: 45px;
+      top: 36px;
       right: -400px;
       width: 100%;
       max-width: 400px;
-      height: calc(100vh - 45px);
+      height: calc(100vh - 36px);
       background-color: white;
       border-left: 1px solid #ccc;
       box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -613,7 +614,7 @@
     }
     #user-balance-value,
     #user-balance-text {
-      font-size: 14px;
+      font-size: 10px;
       color: #ff355f;
     }
   </style>
