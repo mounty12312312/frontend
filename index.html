@@ -1030,13 +1030,18 @@
           const cached = localStorage.getItem('merch_cart');
           if (cached) {
             cartItems = JSON.parse(cached);
-            updateCartDisplay();
-            updateCartButton();
+          } else {
+            cartItems = {};
           }
+          // Всегда обновляем отображение и кнопку, даже если кэш пустой
+          updateCartDisplay();
+          updateCartButton();
           resolve();
         } catch (error) {
           console.error('Ошибка загрузки корзины:', error);
           cartItems = {};
+          updateCartDisplay();
+          updateCartButton();
           resolve();
         }
       });
@@ -1099,10 +1104,7 @@
       const cartItemsList = document.getElementById('cart-items');
       const checkoutButton = document.querySelector('.checkout-button');
       
-      console.log('Обновление отображения корзины');
-      console.log('Кнопка найдена:', !!checkoutButton);
-      
-      if (!cartItemsList) return;
+      if (!cartItemsList || !checkoutButton) return;
       
       cartItemsList.innerHTML = '';
 
@@ -1111,8 +1113,10 @@
       if (!hasItems) {
         cartItemsList.innerHTML = '<p style="text-align: center; color: #888;">Корзина пуста</p>';
         checkoutButton.classList.remove('visible');
+        checkoutButton.disabled = true; // Делаем кнопку неактивной
       } else {
         checkoutButton.classList.add('visible');
+        checkoutButton.disabled = false; // Делаем кнопку активной
         
         for (const productId in cartItems) {
           const item = cartItems[productId];
