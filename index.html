@@ -785,6 +785,8 @@
         if (mainCheckoutButton) {
           mainCheckoutButton.remove();
         }
+
+        await validateCartStock();
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -899,6 +901,21 @@
               }
             }
           });
+          
+          // Добавляем новый заказ в историю
+          const historyContainer = document.getElementById('history-items');
+          if (historyContainer) {
+            const orderElement = document.createElement('div');
+            orderElement.className = 'order-container';
+            orderElement.innerHTML = `
+              <div>${new Date(getMoscowDate()).toLocaleDateString()}</div>
+              <div style="color: #666; font-size: 12px;">Трек-номер не назначен</div>
+              <div style="color: #ff355f; text-align: right; font-weight: bold;">
+                ${formatPrice(Object.values(cartItems).reduce((sum, item) => sum + item.price * item.quantity, 0))}
+              </div>
+            `;
+            historyContainer.insertBefore(orderElement, historyContainer.firstChild);
+          }
           
           cartItems = {};
           updateCartDisplay();
@@ -1097,24 +1114,49 @@
     }
 
     // Обновляем функцию добавления в корзину
-    function addToCart(productId, name, price, stock) {
-      if (!cartItems[productId]) {
-        cartItems[productId] = {
-          name,
-          price,
-          quantity: 0,
-          maxStock: parseInt(stock)  // Сохраняем остаток для конкретного товара
-        };
+    async function addToCart(productId, name, price, stock) {
+      try {
+        // Проверяем актуальный остаток перед добавлением
+        const response = await fetch(`${BACKEND_URL}/api/products`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const products = await response.json();
+        const product = products.find(p => p[0] === productId);
+        
+        if (!product) {
+          showToast('Товар больше не доступен');
+          return;
+        }
+        
+        const currentStock = parseInt(product[2]);
+        if (currentStock <= 0) {
+          showToast('Товар закончился');
+          return;
+        }
+
+        if (!cartItems[productId]) {
+          cartItems[productId] = {
+            name,
+            price,
+            quantity: 0,
+            maxStock: currentStock
+          };
+        }
+        
+        if (cartItems[productId].quantity >= currentStock) {
+          showToast('Достигнут максимальный остаток товара');
+          return;
+        }
+        
+        cartItems[productId].quantity++;
+        updateCartDisplay();
+        updateCartButton();
+        saveCartToCache();
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        showToast('Ошибка при добавлении товара');
       }
-      
-      if (cartItems[productId].quantity >= cartItems[productId].maxStock) {
-        return;
-      }
-      
-      cartItems[productId].quantity++;
-      updateCartDisplay();
-      updateCartButton();
-      saveCartToCache();
     }
 
     // Обновляем функцию изменения количества
@@ -1429,6 +1471,44 @@
           toast.remove();
         }, 300);
       }, 3000);
+    }
+
+    // Добавляем функцию проверки остатков при загрузке
+    async function validateCartStock() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/products`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const products = await response.json();
+        
+        let needsUpdate = false;
+        for (const productId in cartItems) {
+          const product = products.find(p => p[0] === productId);
+          if (!product) {
+            delete cartItems[productId];
+            needsUpdate = true;
+            continue;
+          }
+          
+          const currentStock = parseInt(product[2]);
+          if (cartItems[productId].quantity > currentStock) {
+            cartItems[productId].quantity = currentStock;
+            needsUpdate = true;
+          }
+          cartItems[productId].maxStock = currentStock;
+        }
+        
+        if (needsUpdate) {
+          showToast('Корзина обновлена в соответствии с текущими остатками');
+          updateCartDisplay();
+          updateCartButton();
+          saveCartToCache();
+        }
+      } catch (error) {
+        console.error('Error validating cart:', error);
+        showToast('Ошибка при проверке остатков');
+      }
     }
   </script>
 </body>
