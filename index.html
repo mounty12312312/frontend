@@ -647,7 +647,7 @@
   </div>
   <div class="header">
     <div class="balance-container">
-      <span id="user-balance-value" style="display: none;">0 баллов</span>
+      <span id="user-balance-value" style="display: none;">0 Б</span>
       <span id="user-balance-text" style="display: none;">Нет баланса</span>
     </div>
     <button class="header-button" onclick="toggleCart()">Корзина</button>
@@ -1006,12 +1006,10 @@
       console.log('Обновление баланса:', balance);
 
       if (balance !== null && balance !== undefined) {
-        // Есть баланс
-        balanceValueElement.textContent = `${balance} баллов`;
+        balanceValueElement.textContent = `${balance} Б`;
         balanceValueElement.style.display = 'block';
         balanceTextElement.style.display = 'none';
       } else {
-        // Нет баланса
         balanceValueElement.style.display = 'none';
         balanceTextElement.style.display = 'block';
       }
@@ -1317,7 +1315,7 @@
             <div class="product-info">
               <h3 class="product-name">${name}</h3>
               <p class="product-description">${description}</p>
-              <div class="product-price">${price} баллов</div>
+              <div class="product-price">${price} Б</div>
               <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" class="add-to-cart-button">
                 Добавить в корзину
               </button>
