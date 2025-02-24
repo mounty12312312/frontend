@@ -620,6 +620,22 @@
       font-size: 10px;
       color: #ff355f;
     }
+    /* Добавляем стили для всплывающего уведомления */
+    .toast-notification {
+      position: fixed;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -887,7 +903,7 @@
           cartItems = {};
           updateCartDisplay();
           updateCartButton();
-          alert('Заказ успешно оформлен!');
+          showToast('Заказ успешно оформлен');
           toggleCart();
         } else {
           throw new Error(result.message || 'Ошибка при оформлении заказа');
@@ -1355,6 +1371,34 @@
 
         productsContainer.appendChild(productCard);
       });
+    }
+
+    // Добавляем функцию для показа уведомления
+    function showToast(message) {
+      // Удаляем существующее уведомление, если оно есть
+      const existingToast = document.querySelector('.toast-notification');
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
+      // Создаем новое уведомление
+      const toast = document.createElement('div');
+      toast.className = 'toast-notification';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Показываем уведомление
+      setTimeout(() => {
+        toast.style.opacity = '1';
+      }, 100);
+      
+      // Скрываем и удаляем через 3 секунды
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
     }
   </script>
 </body>
