@@ -776,8 +776,7 @@
       document.getElementById('checkout-form-container').style.display = 'none';
     }
 
-    async function submitOrder(event) {
-      event.preventDefault();
+    async function submitOrder() {
       showLoading();
       try {
         const senderName = document.getElementById('sender-name').value;
@@ -787,13 +786,11 @@
         const city = document.getElementById('city').value;
         const address = document.getElementById('address').value;
 
-        // Проверяем заполнение обязательных полей
         if (!senderName || !senderPhone || !recipient || !phone || !city || !address) {
           alert('Пожалуйста, заполните все обязательные поля');
           return;
         }
 
-        // Добавляем данные доставки к заказу
         const deliveryInfo = {
           senderName,
           senderPhone,
@@ -805,7 +802,7 @@
 
         await checkout(deliveryInfo);
         hideCheckoutForm();
-        clearCartCache(); // Очищаем кеш только после успешного оформления
+        clearCartCache();
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
         alert('Произошла ошибка при оформлении заказа');
@@ -917,11 +914,13 @@
         }
       });
 
-      // Добавляем одну кнопку "Загрузить еще" в конец
+      // Добавляем одну кнопку "Загрузить еще" с обновленными стилями
       if (orders.length >= 10) {
         const loadMoreButton = document.createElement('button');
         loadMoreButton.className = 'load-more-button';
         loadMoreButton.textContent = 'Загрузить еще';
+        loadMoreButton.style.backgroundColor = '#ff355f';
+        loadMoreButton.style.color = 'white';
         loadMoreButton.onclick = loadMoreOrders;
         historyContainer.appendChild(loadMoreButton);
       }
@@ -1021,8 +1020,8 @@
         const cached = localStorage.getItem('merch_cart');
         if (cached) {
           cartItems = JSON.parse(cached);
-          updateCartDisplay(); // Обновляем отображение корзины
-          updateCartButton(); // Обновляем кнопку корзины
+          updateCartDisplay();
+          updateCartButton();
         }
       } catch (error) {
         console.error('Ошибка загрузки корзины:', error);
