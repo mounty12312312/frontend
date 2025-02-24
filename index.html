@@ -873,6 +873,31 @@
         if (result.success) {
           clearCache();
           await fetchUserBalance();
+          
+          // Обновляем остатки в существующих карточках товаров
+          const productCards = document.querySelectorAll('.product-card');
+          productCards.forEach(card => {
+            const addButton = card.querySelector('.add-to-cart-button');
+            const stockElement = card.querySelector('.product-stock');
+            const productId = addButton.onclick.toString().match(/'([^']+)'/)[1];
+            
+            if (cartItems[productId]) {
+              const currentStock = parseInt(stockElement.textContent.replace('Осталось: ', ''));
+              const newStock = currentStock - cartItems[productId].quantity;
+              stockElement.textContent = `Осталось: ${newStock}`;
+              
+              // Обновляем onclick с новым остатком
+              const name = card.querySelector('.product-name').textContent;
+              const price = parseInt(card.querySelector('.product-price').textContent);
+              addButton.onclick = () => addToCart(productId, name, price, newStock);
+              
+              // Отключаем кнопку, если остаток 0
+              if (newStock <= 0) {
+                addButton.disabled = true;
+              }
+            }
+          });
+          
           cartItems = {};
           updateCartDisplay();
           updateCartButton();
@@ -1070,21 +1095,17 @@
     }
 
     // Обновляем функцию добавления в корзину
-    function addToCart(productId, name, price) {
-      const products = document.querySelectorAll('.product-card');
-      const product = Array.from(products).find(p => p.querySelector('.add-to-cart-button').onclick.toString().includes(productId));
-      const stock = parseInt(product.querySelector('.product-stock').textContent.replace('Осталось: ', ''));
-      
+    function addToCart(productId, name, price, stock) {
       if (!cartItems[productId]) {
         cartItems[productId] = {
           name,
           price,
           quantity: 0,
-          maxStock: stock
+          maxStock: parseInt(stock)  // Сохраняем остаток для конкретного товара
         };
       }
       
-      if (cartItems[productId].quantity >= stock) {
+      if (cartItems[productId].quantity >= cartItems[productId].maxStock) {
         return;
       }
       
@@ -1321,7 +1342,7 @@
               <h3 class="product-name">${name}</h3>
               <p class="product-stock">Осталось: ${description}</p>
               <div class="product-price">${price} Б</div>
-              <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" 
+              <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price}, ${description})" 
                 class="add-to-cart-button" 
                 ${parseInt(description) <= 0 ? 'disabled' : ''}>
                 Добавить в корзину
@@ -1368,7 +1389,7 @@
             <h3 class="product-name">${name}</h3>
             <p class="product-stock">Осталось: ${description}</p>
             <div class="product-price">${price} Б</div>
-            <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" 
+            <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price}, ${description})" 
               class="add-to-cart-button" 
               ${parseInt(description) <= 0 ? 'disabled' : ''}>
               Добавить в корзину
