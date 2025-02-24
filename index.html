@@ -819,11 +819,16 @@
       }
 
       try {
+        // Вычисляем общую стоимость из cartItems
+        const totalCost = Object.values(cartItems).reduce((sum, item) => {
+          return sum + (item.price * item.quantity);
+        }, 0);
+
         const orderData = {
           telegramId,
           products: cartItems,
-          totalCost: parseFloat(document.getElementById('cart-total').textContent),
-          date: getMoscowDate(), // Используем новую функцию для даты
+          totalCost: totalCost,
+          date: getMoscowDate(),
           deliveryInfo
         };
 
@@ -837,29 +842,19 @@
           body: JSON.stringify(orderData)
         });
 
-        console.log('Статус ответа:', orderResponse.status);
-        console.log('Заголовки ответа:', Object.fromEntries(orderResponse.headers.entries()));
-
         if (!orderResponse.ok) {
           const errorText = await orderResponse.text();
-          console.error('Текст ошибки:', errorText);
           throw new Error(`Ошибка при оформлении заказа: ${orderResponse.status}. ${errorText}`);
         }
 
         const result = await orderResponse.json();
-        console.log('Результат запроса:', result);
-
+        
         if (result.success) {
-          console.log('Заказ успешно создан, очищаем кэш');
           clearCache();
-
-          console.log('Обновляем баланс пользователя');
           await fetchUserBalance();
-
-          console.log('Очищаем корзину');
           cartItems = {};
           updateCartDisplay();
-
+          updateCartButton();
           alert('Заказ успешно оформлен!');
           toggleCart();
         } else {
@@ -867,7 +862,7 @@
         }
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
-        alert(error.message || 'Произошла ошибка при оформлении заказа');
+        throw error; // Пробрасываем ошибку дальше для обработки в submitOrder
       }
     }
 
