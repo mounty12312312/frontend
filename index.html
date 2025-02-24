@@ -892,7 +892,7 @@
             orderElement.className = 'order-container';
             orderElement.innerHTML = `
               <div>${new Date(newOrder.date).toLocaleDateString()}</div>
-              <div style="color: #666;">${newOrder.trackNumber}</div>
+              <div style="color: #666; font-size: 12px;">${newOrder.trackNumber}</div>
               <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(newOrder.totalCost)}</div>
             `;
             historyContainer.insertBefore(orderElement, historyContainer.firstChild);
@@ -953,7 +953,7 @@
           
           orderElement.innerHTML = `
             <div>${new Date(order.date).toLocaleDateString()}</div>
-            <div style="color: #666;">${order.trackNumber}</div>
+            <div style="color: #666; font-size: 12px;">${order.trackNumber}</div>
             <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(order.totalCost)}</div>
           `;
           
