@@ -740,7 +740,6 @@
           balanceTextElement.style.display = 'block';
         }
 
-        // Загружаем корзину перед отображением данных
         await loadCartFromCache();
 
         await Promise.all([
@@ -748,12 +747,6 @@
           fetchProducts(),
           fetchOrderHistory()
         ]);
-        
-        // Удаляем элементы загрузки
-        const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text, .loading-container');
-        loadingElements.forEach(el => {
-          if (el) el.remove();
-        });
         
         // Удаляем кнопку с главного экрана
         const mainCheckoutButton = document.querySelector('#main-checkout-button');
@@ -777,8 +770,12 @@
     }
 
     async function submitOrder() {
-      showLoading();
-      // Обновляем текст в плашке загрузки
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      
       const loadingText = document.querySelector('.loading-overlay .loading-text');
       if (loadingText) {
         loadingText.textContent = 'Оформляем заказ...';
@@ -809,7 +806,6 @@
         await checkout(deliveryInfo);
         hideCheckoutForm();
         clearCartCache();
-        // Возвращаем исходный текст
         if (loadingText) {
           loadingText.textContent = 'Подождите...';
         }
@@ -817,7 +813,13 @@
         console.error('Ошибка при оформлении заказа:', error);
         alert('Произошла ошибка при оформлении заказа');
       } finally {
-        hideLoading();
+        if (overlay) {
+          overlay.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+        if (loadingText) {
+          loadingText.textContent = 'Подождите...';
+        }
       }
     }
 
