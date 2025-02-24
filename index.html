@@ -344,19 +344,6 @@
       color: white;
       border: none;
     }
-    .loading-overlay,
-    #loading-overlay,
-    .loading-text,
-    .loading-container {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      height: 0 !important;
-      width: 0 !important;
-      position: absolute !important;
-      pointer-events: none !important;
-      z-index: -1 !important;
-    }
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -586,30 +573,45 @@
     .cart-container.show .cart-checkout-button {
       display: block;
     }
-    /* Стили для плашки загрузки */
+    /* Новые стили для плашки загрузки */
     .loading-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(255, 255, 255, 0.9);
-      display: flex;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: none;
       justify-content: center;
       align-items: center;
       z-index: 2000;
     }
-    .loading-text {
-      background-color: #ff355f;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    .loading-content {
+      background-color: white;
+      padding: 20px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    /* Скрываем кнопку на главном экране */
-    button.cart-checkout-button:not(.cart-container *) {
-      display: none !important;
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #ff355f;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loading-text {
+      color: #ff355f;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     #user-balance-value,
     #user-balance-text {
@@ -620,7 +622,10 @@
 </head>
 <body>
   <div class="loading-overlay" id="loading-overlay">
-    <div class="loading-text">Подождите...</div>
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Подождите...</div>
+    </div>
   </div>
   <div class="header">
     <div class="balance-container">
@@ -647,9 +652,6 @@
       <button class="back-button" onclick="toggleHistory()">✕</button>
     </div>
     <div id="history-items"></div>
-  </div>
-  <div class="loading-container" id="loading-container">
-    Подождите...
   </div>
   <div class="checkout-form-container" id="checkout-form-container">
     <div class="checkout-form">
@@ -706,7 +708,6 @@
     const cartButton = document.getElementById('cart-button');
     let userBalanceValue = document.getElementById('user-balance-value');
     let userBalanceText = document.getElementById('user-balance-text');
-    const loadingContainer = document.getElementById('loading-container');
 
     // Добавляем константы для кэширования
     const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
@@ -715,20 +716,6 @@
       USER_BALANCE: 'cached_user_balance',
       ORDERS: 'cached_orders'
     };
-
-    // Создаем и добавляем оверлей загрузки сразу после определения функции
-    function createLoadingOverlay() {
-      let loadingOverlay = document.getElementById('loading-overlay');
-      if (!loadingOverlay) {
-        loadingOverlay = document.createElement('div');
-        loadingOverlay.id = 'loading-overlay';
-        loadingOverlay.className = 'loading-overlay';
-        loadingOverlay.style.display = 'none';
-        loadingOverlay.innerHTML = '<div class="loading-text">Подождите...</div>';
-        document.body.appendChild(loadingOverlay);
-      }
-      return loadingOverlay;
-    }
 
     // Обновляем порядок выполнения при загрузке страницы
     // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
@@ -1243,6 +1230,7 @@
       const overlay = document.getElementById('loading-overlay');
       if (overlay) {
         overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Блокируем прокрутку
       }
     }
 
@@ -1251,6 +1239,7 @@
       const overlay = document.getElementById('loading-overlay');
       if (overlay) {
         overlay.style.display = 'none';
+        document.body.style.overflow = ''; // Возвращаем прокрутку
       }
     }
 
@@ -1353,23 +1342,5 @@
         productsContainer.appendChild(productCard);
       });
     }
-
-    // Добавляем обработчик для удаления плашки загрузки
-    document.addEventListener('DOMContentLoaded', () => {
-      const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text, .loading-container');
-      loadingElements.forEach(el => {
-        if (el) {
-          el.remove();
-        }
-      });
-    });
-
-    // Добавляем обработчик для удаления кнопки с главного экрана
-    document.addEventListener('DOMContentLoaded', () => {
-      const mainCheckoutButton = document.querySelector('#main-checkout-button');
-      if (mainCheckoutButton) {
-        mainCheckoutButton.remove();
-      }
-    });
   </script>
 </body>
