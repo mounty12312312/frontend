@@ -1114,49 +1114,36 @@
     }
 
     // Обновляем функцию добавления в корзину
-    async function addToCart(productId, name, price, stock) {
-      try {
-        // Проверяем актуальный остаток перед добавлением
-        const response = await fetch(`${BACKEND_URL}/api/products`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const products = await response.json();
-        const product = products.find(p => p[0] === productId);
-        
-        if (!product) {
-          showToast('Товар больше не доступен');
-          return;
-        }
-        
-        const currentStock = parseInt(product[2]);
-        if (currentStock <= 0) {
-          showToast('Товар закончился');
-          return;
-        }
+    function addToCart(productId, name, price, stock) {
+      const currentStock = parseInt(stock);
+      const button = document.querySelector(`button[onclick*="'${productId}'"]`);
 
-        if (!cartItems[productId]) {
-          cartItems[productId] = {
-            name,
-            price,
-            quantity: 0,
-            maxStock: currentStock
-          };
-        }
-        
-        if (cartItems[productId].quantity >= currentStock) {
-          showToast('Достигнут максимальный остаток товара');
-          return;
-        }
-        
-        cartItems[productId].quantity++;
-        updateCartDisplay();
-        updateCartButton();
-        saveCartToCache();
-      } catch (error) {
-        console.error('Error adding to cart:', error);
-        showToast('Ошибка при добавлении товара');
+      if (!cartItems[productId]) {
+        cartItems[productId] = {
+          name,
+          price,
+          quantity: 0,
+          maxStock: currentStock,
+          button: button
+        };
       }
+      
+      if (cartItems[productId].quantity >= cartItems[productId].maxStock) {
+        if (button) button.disabled = true;
+        showToast('Достигнут максимальный остаток товара');
+        return;
+      }
+      
+      cartItems[productId].quantity++;
+      
+      // Проверяем, нужно ли деактивировать кнопку
+      if (cartItems[productId].quantity >= cartItems[productId].maxStock && button) {
+        button.disabled = true;
+      }
+      
+      updateCartDisplay();
+      updateCartButton();
+      saveCartToCache();
     }
 
     // Обновляем функцию изменения количества
@@ -1170,6 +1157,13 @@
         }
         
         cartItems[productId].quantity = newQuantity;
+        
+        // Активируем/деактивируем кнопку в зависимости от количества
+        const button = document.querySelector(`button[onclick*="'${productId}'"]`);
+        if (button) {
+          button.disabled = newQuantity >= cartItems[productId].maxStock;
+        }
+        
         if (cartItems[productId].quantity <= 0) {
           delete cartItems[productId];
         }
