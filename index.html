@@ -183,11 +183,10 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 20px;
-      padding: 20px;
+      padding: 10px;
       max-width: 100%;
       box-sizing: border-box;
       margin: 0 auto;
-      padding-top: 10px;
     }
     .product {
       border: 1px solid #ccc;
@@ -909,6 +908,7 @@
 
       if (!isLoadMore) {
         historyContainer.innerHTML = '';
+        currentPage = 1; // Сбрасываем страницу при первой загрузке
       }
 
       if (!orders || orders.length === 0) {
@@ -924,7 +924,12 @@
         return;
       }
 
-      orders.forEach(order => {
+      // Определяем диапазон заказов для текущей страницы
+      const start = (currentPage - 1) * ordersPerPage;
+      const end = currentPage * ordersPerPage;
+      const pageOrders = orders.slice(start, end);
+
+      pageOrders.forEach(order => {
         try {
           const orderElement = document.createElement('div');
           orderElement.className = 'order-container';
@@ -941,14 +946,17 @@
         }
       });
 
-      // Добавляем одну кнопку "Загрузить еще" с обновленными стилями
-      if (orders.length >= 10) {
+      // Показываем кнопку "Загрузить еще" только если есть еще заказы
+      if (end < orders.length) {
         const loadMoreButton = document.createElement('button');
         loadMoreButton.className = 'load-more-button';
         loadMoreButton.textContent = 'Загрузить еще';
         loadMoreButton.style.backgroundColor = '#ff355f';
         loadMoreButton.style.color = 'white';
-        loadMoreButton.onclick = loadMoreOrders;
+        loadMoreButton.onclick = () => {
+          currentPage++;
+          displayOrders(orders, true);
+        };
         historyContainer.appendChild(loadMoreButton);
       }
     }
@@ -1181,42 +1189,6 @@
       } catch (error) {
         console.error('Ошибка при получении истории заказов:', error);
         displayOrders([]);
-      }
-    }
-
-    function loadMoreOrders() {
-      currentPage++;
-      const start = (currentPage - 1) * ordersPerPage;
-      const end = currentPage * ordersPerPage;
-      const pageOrders = orders.slice(start, end);
-      
-      if (pageOrders.length > 0) {
-        const historyContainer = document.getElementById('history-items');
-        
-        pageOrders.forEach(order => {
-          const orderElement = document.createElement('div');
-          orderElement.className = 'order-container';
-          
-          const productsHtml = order.products ? 
-            Object.entries(order.products)
-              .map(([_, product]) => `${product.name} x ${product.quantity}`)
-              .join('<br>')
-            : 'Нет данных о продуктах';
-          
-          orderElement.innerHTML = `
-            <div class="order-date">${new Date(order.date).toLocaleDateString()}</div>
-            <div class="order-products">${productsHtml}</div>
-            <div class="order-total">${formatPrice(order.totalCost)}</div>
-          `;
-          
-          historyContainer.appendChild(orderElement);
-        });
-      }
-
-      // Скрываем кнопку, если больше нет заказов для загрузки
-      const loadMoreButton = document.getElementById('load-more-button');
-      if (loadMoreButton && end >= orders.length) {
-        loadMoreButton.style.display = 'none';
       }
     }
 
