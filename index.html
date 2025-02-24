@@ -1028,14 +1028,12 @@
       return new Promise((resolve) => {
         try {
           const cached = localStorage.getItem('merch_cart');
-          if (cached) {
-            cartItems = JSON.parse(cached);
-          } else {
-            cartItems = {};
-          }
-          // Всегда обновляем отображение и кнопку, даже если кэш пустой
+          cartItems = cached ? JSON.parse(cached) : {};
+          
+          // Принудительно обновляем отображение и кнопку
           updateCartDisplay();
           updateCartButton();
+          
           resolve();
         } catch (error) {
           console.error('Ошибка загрузки корзины:', error);
@@ -1144,7 +1142,7 @@
         return sum + (item.price * item.quantity);
       }, 0);
       
-      cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
+      cartButton.textContent = totalCost > 0 ? `Корзина: ${formatPrice(totalCost)}` : 'Корзина';
     }
 
     let orders = [];
@@ -1469,27 +1467,6 @@
         display: none;
       }
     `;
-
-    // Обновляем HTML структуру шапки
-    document.addEventListener('DOMContentLoaded', () => {
-      const header = document.querySelector('.header');
-      if (header) {
-        header.innerHTML = `
-          <div class="balance-container">
-            <span id="user-balance-value">0 Б</span>
-            <span id="user-balance-text" style="display: none;">Нет баланса</span>
-          </div>
-          <button class="header-button" onclick="toggleCart()">Корзина</button>
-          <button class="header-button" onclick="toggleHistory()">История заказов</button>
-        `;
-      }
-
-      // Скрываем оверлей загрузки
-      const loadingOverlay = document.getElementById('loading-overlay');
-      if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-      }
-    });
 
     // Добавляем стили
     document.head.appendChild(styleSheet);
