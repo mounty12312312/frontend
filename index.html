@@ -626,7 +626,7 @@
       top: 50px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #4CAF50;
+      background-color: #ff355f;
       color: white;
       padding: 12px 24px;
       border-radius: 8px;
@@ -881,7 +881,7 @@
           // Создаем объект заказа из текущих данных
           const newOrder = {
             date: getMoscowDate(),
-            products: cartItems,
+            trackNumber: 'Трек-номер не назначен',
             totalCost: totalCost
           };
           
@@ -892,7 +892,7 @@
             orderElement.className = 'order-container';
             orderElement.innerHTML = `
               <div>${new Date(newOrder.date).toLocaleDateString()}</div>
-              <div>${Object.values(newOrder.products).map(p => `${p.name} x ${p.quantity}`).join('<br>')}</div>
+              <div style="color: #666;">${newOrder.trackNumber}</div>
               <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(newOrder.totalCost)}</div>
             `;
             historyContainer.insertBefore(orderElement, historyContainer.firstChild);
@@ -951,15 +951,15 @@
           const orderElement = document.createElement('div');
           orderElement.className = 'order-container';
           
-          orderElement.innerHTML = order.products ? `
+          orderElement.innerHTML = `
             <div>${new Date(order.date).toLocaleDateString()}</div>
-            <div>${Object.values(order.products).map(p => `${p.name} x ${p.quantity}`).join('<br>')}</div>
+            <div style="color: #666;">${order.trackNumber}</div>
             <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(order.totalCost)}</div>
-          ` : 'Нет данных о заказе';
+          `;
           
           historyContainer.appendChild(orderElement);
         } catch (error) {
-          // Пропускаем некорректный заказ
+          console.error('Error displaying order:', error);
         }
       });
 
