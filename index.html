@@ -636,6 +636,17 @@
       transition: opacity 0.3s ease-in-out;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
+    .add-to-cart-button:disabled,
+    .quantity-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .product-stock {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -819,11 +830,19 @@
           address
         };
 
-        await checkout(deliveryInfo);
-        hideCheckoutForm();
-        clearCartCache();
-        if (loadingText) {
-          loadingText.textContent = 'Подождите...';
+        const result = await checkout(deliveryInfo);
+        
+        if (result.success) {
+          hideCheckoutForm();
+          clearCartCache();
+          showToast('Заказ успешно оформлен');
+        } else if (result.needsReload) {
+          showToast('Данные остатков изменились. Перезагрузите приложение');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
@@ -905,6 +924,7 @@
           updateCartButton();
           showToast('Заказ успешно оформлен');
           toggleCart();
+          return result;
         } else {
           throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
@@ -1084,13 +1104,23 @@
 
     // Обновляем функцию добавления в корзину
     function addToCart(productId, name, price) {
+      const products = document.querySelectorAll('.product-card');
+      const product = Array.from(products).find(p => p.querySelector('.add-to-cart-button').onclick.toString().includes(productId));
+      const stock = parseInt(product.querySelector('.product-stock').textContent.replace('Осталось: ', ''));
+      
       if (!cartItems[productId]) {
         cartItems[productId] = {
           name,
           price,
-          quantity: 0
+          quantity: 0,
+          maxStock: stock
         };
       }
+      
+      if (cartItems[productId].quantity >= stock) {
+        return;
+      }
+      
       cartItems[productId].quantity++;
       updateCartDisplay();
       updateCartButton();
@@ -1155,7 +1185,8 @@
             <span class="cart-item-name">${item.name}</span>
             <button class="quantity-button minus" onclick="updateCartItemQuantity('${productId}', -1)">-</button>
             <span class="cart-item-quantity">${item.quantity} x ${formatPrice(item.price)}</span>
-            <button class="quantity-button plus" onclick="updateCartItemQuantity('${productId}', 1)">+</button>
+            <button class="quantity-button plus" onclick="updateCartItemQuantity('${productId}', 1)"
+              ${item.quantity >= item.maxStock ? 'disabled' : ''}>+</button>
           `;
           
           cartItemsList.appendChild(li);
@@ -1314,9 +1345,11 @@
             <img src="${image}" alt="${name}" class="product-image">
             <div class="product-info">
               <h3 class="product-name">${name}</h3>
-              <p class="product-description">${description}</p>
+              <p class="product-stock">Осталось: ${description}</p>
               <div class="product-price">${price} Б</div>
-              <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" class="add-to-cart-button">
+              <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" 
+                class="add-to-cart-button" 
+                ${parseInt(description) <= 0 ? 'disabled' : ''}>
                 Добавить в корзину
               </button>
             </div>
@@ -1359,9 +1392,11 @@
           <img src="${image}" alt="${name}" class="product-image">
           <div class="product-info">
             <h3 class="product-name">${name}</h3>
-            <p class="product-description">${description}</p>
+            <p class="product-stock">Осталось: ${description}</p>
             <div class="product-price">${price} Б</div>
-            <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" class="add-to-cart-button">
+            <button onclick="addToCart('${id}', '${name.replace(/'/g, "\\'")}', ${price})" 
+              class="add-to-cart-button" 
+              ${parseInt(description) <= 0 ? 'disabled' : ''}>
               Добавить в корзину
             </button>
           </div>
