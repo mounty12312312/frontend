@@ -573,7 +573,7 @@
     .cart-container.show .cart-checkout-button {
       display: block;
     }
-    /* Новые стили для плашки загрузки */
+    /* Обновляем стили для плашки загрузки */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -585,7 +585,7 @@
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 2000;
+      z-index: 3000; /* Увеличиваем z-index, чтобы плашка была поверх всего */
     }
     .loading-content {
       background-color: white;
@@ -595,6 +595,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      position: relative; /* Добавляем для правильного отображения на всех устройствах */
+      z-index: 3001; /* Контент плашки должен быть поверх затемнения */
     }
     .loading-spinner {
       width: 24px;
@@ -775,7 +777,11 @@
     }
 
     async function submitOrder() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      const loadingText = loadingOverlay.querySelector('.loading-text');
+      loadingText.textContent = 'Оформляем заказ...';
       showLoading();
+
       try {
         const senderName = document.getElementById('sender-name').value;
         const senderPhone = document.getElementById('sender-phone').value;
@@ -801,6 +807,7 @@
         await checkout(deliveryInfo);
         hideCheckoutForm();
         clearCartCache();
+        loadingText.textContent = 'Подождите...'; // Возвращаем исходный текст
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error);
         alert('Произошла ошибка при оформлении заказа');
