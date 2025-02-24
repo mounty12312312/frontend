@@ -267,20 +267,24 @@
       }
     }
     .checkout-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #007bff;
+      display: none;
+      width: 90%;
+      margin: 20px auto;
+      background-color: #ff355f;
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 20px;
       cursor: pointer;
+      transition: all 0.2s;
       font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .checkout-button:hover {
-      background-color: #0056b3;
+    .cart-container.show .checkout-button {
+      display: block;
+    }
+    /* Удаляем стили для кнопки на главном экране */
+    button.checkout-button:not(.cart-container *) {
+      display: none !important;
     }
     .checkout-form-container {
       display: none;
@@ -850,6 +854,26 @@
         const result = await orderResponse.json();
         
         if (result.success) {
+          // Создаем объект заказа из текущих данных
+          const newOrder = {
+            date: getMoscowDate(),
+            products: cartItems,
+            totalCost: totalCost
+          };
+          
+          // Добавляем заказ в начало истории
+          const historyContainer = document.getElementById('history-items');
+          if (historyContainer) {
+            const orderElement = document.createElement('div');
+            orderElement.className = 'order-container';
+            orderElement.innerHTML = `
+              <div>${new Date(newOrder.date).toLocaleDateString()}</div>
+              <div>${Object.values(newOrder.products).map(p => `${p.name} x ${p.quantity}`).join('<br>')}</div>
+              <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(newOrder.totalCost)}</div>
+            `;
+            historyContainer.insertBefore(orderElement, historyContainer.firstChild);
+          }
+
           clearCache();
           await fetchUserBalance();
           cartItems = {};
@@ -923,27 +947,16 @@
 
     // Добавляем функцию для создания необходимых элементов
     function createRequiredElements() {
-      // Создаем контейнер истории, если его нет
       if (!document.querySelector('.history-container')) {
         const historyContainer = document.createElement('div');
         historyContainer.className = 'history-container';
         document.body.appendChild(historyContainer);
       }
 
-      // Создаем список истории заказов, если его нет
       if (!document.getElementById('history-items')) {
         const historyItems = document.createElement('div');
         historyItems.id = 'history-items';
         document.querySelector('.history-container').appendChild(historyItems);
-      }
-
-      // Создаем кнопку "Загрузить еще", если её нет
-      if (!document.getElementById('load-more-button')) {
-        const loadMoreButton = document.createElement('button');
-        loadMoreButton.id = 'load-more-button';
-        loadMoreButton.textContent = 'Загрузить еще';
-        loadMoreButton.onclick = loadMoreOrders;
-        document.querySelector('.history-container').appendChild(loadMoreButton);
       }
     }
 
@@ -1118,10 +1131,9 @@
       const cartButton = document.querySelector('button[onclick="toggleCart()"]');
       if (!cartButton) return;
 
-      let totalCost = 0;
-      for (const productId in cartItems) {
-        totalCost += cartItems[productId].quantity * cartItems[productId].price;
-      }
+      const totalCost = Object.values(cartItems).reduce((sum, item) => {
+        return sum + (item.price * item.quantity);
+      }, 0);
       
       cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
     }
