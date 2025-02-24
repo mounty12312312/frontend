@@ -674,66 +674,75 @@
       max-width: 500px;
       max-height: 80vh;
       overflow-y: auto;
+      position: relative;
+    }
+    
+    .order-details-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
     }
     
     .order-details-section {
       margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
     }
     
-    .order-details-section h3 {
-      color: #666;
-      font-size: 16px;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #eee;
+    .order-details-section:last-child {
+      border-bottom: none;
+    }
+    
+    .order-details-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
     }
     
     .order-product-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      padding: 8px;
-      background-color: #f8f8f8;
-      border-radius: 6px;
+      margin-bottom: 10px;
     }
     
     .order-total-cost {
       text-align: center;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
       color: #ff355f;
       margin: 20px 0;
-      padding: 10px;
-      background-color: #f8f8f8;
-      border-radius: 6px;
     }
     
-    .delivery-info-item {
-      margin-bottom: 8px;
+    .order-info-row {
       display: flex;
-      flex-direction: column;
+      margin-bottom: 10px;
     }
     
-    .delivery-info-label {
-      font-size: 14px;
+    .order-info-label {
+      font-weight: 500;
+      width: 40%;
       color: #666;
-      margin-bottom: 2px;
     }
     
-    .delivery-info-value {
-      font-size: 16px;
+    .order-info-value {
+      width: 60%;
     }
-    
-    .close-details-button {
-      position: absolute;
-      top: 20px; /* Сместили с 10px на 20px */
-      right: 20px; /* Сместили с 10px на 20px */
-      background: none;
-      border: none;
-      font-size: 24px;
+
+    /* Делаем заказы в истории кликабельными */
+    .order-container {
       cursor: pointer;
-      color: #666;
+      transition: background-color 0.2s;
+    }
+    
+    .order-container:hover {
+      background-color: #f8f9fa;
     }
   </style>
 </head>
@@ -801,6 +810,13 @@
         <button class="cancel" onclick="hideCheckoutForm()">Отмена</button>
         <button class="submit" onclick="submitOrder()">Подтвердить</button>
       </div>
+    </div>
+  </div>
+  <!-- Добавляем модальное окно для деталей заказа -->
+  <div class="order-details-modal" id="order-details-modal">
+    <div class="order-details-content">
+      <button class="order-details-close" onclick="hideOrderDetails()">✕</button>
+      <div id="order-details"></div>
     </div>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -990,13 +1006,14 @@
           if (historyContainer) {
             const orderElement = document.createElement('div');
             orderElement.className = 'order-container';
-            orderElement.style.cursor = 'pointer';
             orderElement.onclick = () => showOrderDetails(result.order);
+            
             orderElement.innerHTML = `
               <div>${new Date(result.order.date).toLocaleDateString()}</div>
               <div style="color: #666; font-size: 12px;">${result.order.trackNumber}</div>
               <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(result.order.totalCost)}</div>
             `;
+            
             historyContainer.insertBefore(orderElement, historyContainer.firstChild);
           }
           
@@ -1064,7 +1081,6 @@
         try {
           const orderElement = document.createElement('div');
           orderElement.className = 'order-container';
-          orderElement.style.cursor = 'pointer';
           orderElement.onclick = () => showOrderDetails(order);
           
           orderElement.innerHTML = `
@@ -1592,22 +1608,24 @@
 
     // Добавляем функцию показа деталей заказа
     function showOrderDetails(order) {
-      const modal = document.createElement('div');
-      modal.className = 'order-details-modal';
+      const modal = document.getElementById('order-details-modal');
+      const detailsContainer = document.getElementById('order-details');
       
-      const orderData = order.products;
-      const deliveryInfo = order.deliveryInfo;
+      let productsHtml = '';
+      for (const productId in order.products) {
+        const product = order.products[productId];
+        productsHtml += `
+          <div class="order-product-item">
+            <span>${product.name} × ${product.quantity}</span>
+            <span>${formatPrice(product.price * product.quantity)}</span>
+          </div>
+        `;
+      }
       
-      modal.innerHTML = `
-        <div class="order-details-content">
-          <button class="close-details-button" onclick="closeOrderDetails(this)">&times;</button>
-          <h3>Содержание заказа</h3>
-          ${Object.entries(orderData).map(([id, item]) => `
-            <div class="order-product-item">
-              <span>${item.name} × ${item.quantity}</span>
-              <span>${formatPrice(item.price * item.quantity)}</span>
-            </div>
-          `).join('')}
+      detailsContainer.innerHTML = `
+        <div class="order-details-section">
+          <div class="order-details-title">Содержание заказа</div>
+          ${productsHtml}
         </div>
         
         <div class="order-total-cost">
@@ -1615,48 +1633,50 @@
         </div>
         
         <div class="order-details-section">
-          <h3>Данные доставки</h3>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Трек-номер</span>
-            <span class="delivery-info-value">${order.trackNumber}</span>
+          <div class="order-details-title">Дополнительная информация</div>
+          <div class="order-info-row">
+            <div class="order-info-label">Трек-номер:</div>
+            <div class="order-info-value">${order.trackNumber}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Отправитель</span>
-            <span class="delivery-info-value">${deliveryInfo.senderName}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">Дата заказа:</div>
+            <div class="order-info-value">${new Date(order.date).toLocaleDateString()}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Телефон отправителя</span>
-            <span class="delivery-info-value">${deliveryInfo.senderPhone}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">ФИО отправителя:</div>
+            <div class="order-info-value">${order.deliveryInfo.senderName}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Получатель</span>
-            <span class="delivery-info-value">${deliveryInfo.recipient}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">Телефон отправителя:</div>
+            <div class="order-info-value">${order.deliveryInfo.senderPhone}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Телефон получателя</span>
-            <span class="delivery-info-value">${deliveryInfo.phone}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">ФИО получателя:</div>
+            <div class="order-info-value">${order.deliveryInfo.recipient}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Город</span>
-            <span class="delivery-info-value">${deliveryInfo.city}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">Телефон получателя:</div>
+            <div class="order-info-value">${order.deliveryInfo.phone}</div>
           </div>
-          <div class="delivery-info-item">
-            <span class="delivery-info-label">Адрес</span>
-            <span class="delivery-info-value">${deliveryInfo.address}</span>
+          <div class="order-info-row">
+            <div class="order-info-label">Город:</div>
+            <div class="order-info-value">${order.deliveryInfo.city}</div>
+          </div>
+          <div class="order-info-row">
+            <div class="order-info-label">Адрес доставки:</div>
+            <div class="order-info-value">${order.deliveryInfo.address}</div>
           </div>
         </div>
-      </div>
-    `;
+      `;
       
-      document.body.appendChild(modal);
-      setTimeout(() => modal.style.display = 'flex', 0);
+      modal.style.display = 'flex';
     }
 
-    // Добавляем функцию закрытия деталей заказа
-    function closeOrderDetails(button) {
-      const modal = button.closest('.order-details-modal');
-      modal.style.display = 'none';
-      setTimeout(() => modal.remove(), 300);
+    function hideOrderDetails() {
+      const modal = document.getElementById('order-details-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
     }
   </script>
 </body>
