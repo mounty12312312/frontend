@@ -268,23 +268,17 @@
     }
     .checkout-button {
       display: none;
-      width: 90%;
-      margin: 20px auto;
+      width: 100%;
+      height: 44px;
       background-color: #ff355f;
       color: white;
       border: none;
-      padding: 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s;
+      border-radius: 8px;
       font-size: 16px;
+      cursor: pointer;
     }
-    .cart-container.show .checkout-button {
+    .checkout-button.visible {
       display: block;
-    }
-    /* Удаляем стили для кнопки на главном экране */
-    button.checkout-button:not(.cart-container *) {
-      display: none !important;
     }
     .checkout-form-container {
       display: none;
@@ -698,7 +692,7 @@
     // Добавляем объявление переменной isInitialized
     let isInitialized = false;
 
-    // Загружаем корзину из кеша сразу после инициализации
+    // Загружаем корзину из кеша до DOMContentLoaded
     let cartItems = {};
     try {
       const cached = localStorage.getItem('merch_cart');
@@ -710,8 +704,8 @@
       cartItems = {};
     }
 
+    // В DOMContentLoaded обновляем кнопку после создания всех элементов
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded event triggered');
       if (isInitialized) return;
       isInitialized = true;
 
@@ -719,10 +713,16 @@
 
       try {
         createRequiredElements();
-        // Обновляем отображение корзины после загрузки DOM
-        updateCartDisplay();
-        updateCartButton();
         
+        // Инициализируем кнопку корзины с правильной суммой
+        const cartButton = document.querySelector('button[onclick="toggleCart()"]');
+        if (cartButton) {
+          const totalCost = Object.values(cartItems).reduce((sum, item) => {
+            return sum + (item.price * item.quantity);
+          }, 0);
+          cartButton.textContent = `Корзина: ${formatPrice(totalCost)}`;
+        }
+
         const balanceValueElement = document.getElementById('user-balance-value');
         const balanceTextElement = document.getElementById('user-balance-text');
         
