@@ -45,13 +45,14 @@
       margin: 0 5px;
     }
     .balance-container {
-      font-size: 11px;
+      font-size: 14px;
       padding: 6px 10px;
       background-color: white;
       border-radius: 15px;
       border: 1px solid #ff355f;
       white-space: nowrap;
       margin-right: 5px;
+      display: inline-block;
     }
     .cart-container,
     .history-container {
@@ -610,6 +611,11 @@
     button.cart-checkout-button:not(.cart-container *) {
       display: none !important;
     }
+    #user-balance-value,
+    #user-balance-text {
+      font-size: 14px;
+      color: #ff355f;
+    }
   </style>
 </head>
 <body>
@@ -617,7 +623,7 @@
     <div class="loading-text">Подождите...</div>
   </div>
   <div class="header">
-    <div class="balance">
+    <div class="balance-container">
       <span id="user-balance-value" style="display: none;">0 баллов</span>
       <span id="user-balance-text" style="display: none;">Нет баланса</span>
     </div>
