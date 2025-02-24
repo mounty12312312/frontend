@@ -674,6 +674,13 @@
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
+    // Добавляем константы для кэширования
+    const CACHE_KEYS = {
+      PRODUCTS: 'cached_products',
+      USER_BALANCE: 'cached_user_balance',
+      ORDERS: 'cached_orders'
+    };
+
     // Инициализация Telegram Mini Apps SDK
     const telegram = window.Telegram.WebApp;
     telegram.expand();
@@ -687,6 +694,9 @@
     }
     console.log('Telegram ID:', telegramId);
     const BACKEND_URL = 'https://backend-ten-swart-36.vercel.app';
+
+    // Добавляем объявление переменной isInitialized
+    let isInitialized = false;
 
     // Загружаем корзину из кеша сразу после инициализации
     let cartItems = {};
