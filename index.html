@@ -817,7 +817,7 @@
         const address = document.getElementById('address').value;
 
         if (!senderName || !senderPhone || !recipient || !phone || !city || !address) {
-          alert('Пожалуйста, заполните все обязательные поля');
+          showToast('Пожалуйста, заполните все обязательные поля');
           return;
         }
 
@@ -831,16 +831,9 @@
         };
 
         const result = await checkout(deliveryInfo);
-        
         if (result.success) {
           hideCheckoutForm();
           clearCartCache();
-          showToast('Заказ успешно оформлен');
-        } else if (result.needsReload) {
-          showToast('Данные остатков изменились. Перезагрузите приложение');
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
         } else {
           throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
@@ -860,63 +853,24 @@
 
     // Обновляем функцию checkout
     async function checkout(deliveryInfo) {
-      if (!telegramId) {
-        alert('Не удалось получить ID пользователя');
-        return;
-      }
-
       try {
-        // Вычисляем общую стоимость из cartItems
-        const totalCost = Object.values(cartItems).reduce((sum, item) => {
-          return sum + (item.price * item.quantity);
-        }, 0);
-
-        const orderData = {
-          telegramId,
-          products: cartItems,
-          totalCost: totalCost,
-          date: getMoscowDate(),
-          deliveryInfo
-        };
-
-        console.log('Отправляемые данные заказа:', orderData);
-
-        const orderResponse = await fetch(`${BACKEND_URL}/api/order`, {
+        const response = await fetch(`${BACKEND_URL}/api/order`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(orderData)
+          body: JSON.stringify({
+            telegramId,
+            products: cartItems,
+            totalCost: Object.values(cartItems).reduce((sum, item) => sum + item.price * item.quantity, 0),
+            date: getMoscowDate(),
+            deliveryInfo
+          })
         });
 
-        if (!orderResponse.ok) {
-          const errorText = await orderResponse.text();
-          throw new Error(`Ошибка при оформлении заказа: ${orderResponse.status}. ${errorText}`);
-        }
-
-        const result = await orderResponse.json();
+        const result = await response.json();
         
         if (result.success) {
-          // Создаем объект заказа из текущих данных
-          const newOrder = {
-            date: getMoscowDate(),
-            trackNumber: 'Трек-номер не назначен',
-            totalCost: totalCost
-          };
-          
-          // Добавляем заказ в начало истории
-          const historyContainer = document.getElementById('history-items');
-          if (historyContainer) {
-            const orderElement = document.createElement('div');
-            orderElement.className = 'order-container';
-            orderElement.innerHTML = `
-              <div>${new Date(newOrder.date).toLocaleDateString()}</div>
-              <div style="color: #666; font-size: 12px;">${newOrder.trackNumber}</div>
-              <div style="color: #ff355f; text-align: right; font-weight: bold;">${formatPrice(newOrder.totalCost)}</div>
-            `;
-            historyContainer.insertBefore(orderElement, historyContainer.firstChild);
-          }
-
           clearCache();
           await fetchUserBalance();
           cartItems = {};
@@ -925,12 +879,25 @@
           showToast('Заказ успешно оформлен');
           toggleCart();
           return result;
+        } else if (result.needsReload) {
+          showToast('Данные остатков изменились. Перезагрузите приложение');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+          return result;
         } else {
           throw new Error(result.message || 'Ошибка при оформлении заказа');
         }
       } catch (error) {
-        console.error('Ошибка при оформлении заказа:', error);
-        throw error; // Пробрасываем ошибку дальше для обработки в submitOrder
+        if (error.message.includes('Insufficient stock')) {
+          showToast('Данные остатков изменились. Перезагрузите приложение');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          showToast('Произошла ошибка при оформлении заказа');
+        }
+        return { success: false };
       }
     }
 
@@ -1130,7 +1097,14 @@
     // Обновляем функцию изменения количества
     function updateCartItemQuantity(productId, delta) {
       if (cartItems[productId]) {
-        cartItems[productId].quantity += delta;
+        const newQuantity = cartItems[productId].quantity + delta;
+        
+        // Проверяем, не превышает ли новое количество максимальный остаток
+        if (delta > 0 && newQuantity > cartItems[productId].maxStock) {
+          return;
+        }
+        
+        cartItems[productId].quantity = newQuantity;
         if (cartItems[productId].quantity <= 0) {
           delete cartItems[productId];
         }
