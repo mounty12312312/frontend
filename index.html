@@ -726,18 +726,14 @@
     }
     
     .close-details-button {
+      position: absolute;
+      top: 20px; /* Сместили с 10px на 20px */
+      right: 20px; /* Сместили с 10px на 20px */
       background: none;
-      border: 1px solid #666;
-      border-radius: 6px;
+      border: none;
       font-size: 24px;
       cursor: pointer;
       color: #666;
-      padding: 5px 15px;
-      transition: all 0.2s;
-    }
-    
-    .close-details-button:hover {
-      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -1604,13 +1600,8 @@
       
       modal.innerHTML = `
         <div class="order-details-content">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">Содержание заказа</h3>
-            <button class="close-details-button" onclick="closeOrderDetails(this)" 
-              style="position: static; padding: 5px 10px; font-size: 16px;">
-              Назад
-            </button>
-          </div>
+          <button class="close-details-button" onclick="closeOrderDetails(this)">&times;</button>
+          <h3>Содержание заказа</h3>
           ${Object.entries(orderData).map(([id, item]) => `
             <div class="order-product-item">
               <span>${item.name} × ${item.quantity}</span>
