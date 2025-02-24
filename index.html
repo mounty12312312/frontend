@@ -723,36 +723,43 @@
     // Обновляем порядок выполнения при загрузке страницы
     // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
     let isInitialized = false;
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event triggered');
       if (isInitialized) return;
       isInitialized = true;
 
-      // Показываем загрузку сразу
       showLoading();
 
       try {
-        // Создаем необходимые элементы
         createRequiredElements();
-
-        // Проверяем наличие элементов баланса
+        
         const balanceValueElement = document.getElementById('user-balance-value');
         const balanceTextElement = document.getElementById('user-balance-text');
         
         if (balanceValueElement && balanceTextElement) {
-          console.log('Элементы баланса найдены');
           balanceValueElement.style.display = 'none';
           balanceTextElement.style.display = 'block';
         }
 
-        // Загружаем данные
-        await Promise.all([
+        Promise.all([
           fetchUserBalance(),
           fetchProducts(),
           fetchOrderHistory()
         ]);
 
-        loadCartFromCache(); // Загружаем корзину после загрузки всех данных
+        loadCartFromCache();
+        
+        // Удаляем элементы загрузки
+        const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text, .loading-container');
+        loadingElements.forEach(el => {
+          if (el) el.remove();
+        });
+        
+        // Удаляем кнопку с главного экрана
+        const mainCheckoutButton = document.querySelector('#main-checkout-button');
+        if (mainCheckoutButton) {
+          mainCheckoutButton.remove();
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -1199,10 +1206,15 @@
 
       if (cartContainer.classList.contains('show')) {
         cartContainer.classList.remove('show');
+        setTimeout(() => {
+          cartContainer.style.display = 'none';
+        }, 300);
       } else {
         if (historyContainer) {
           historyContainer.classList.remove('show');
         }
+        cartContainer.style.display = 'block';
+        cartContainer.offsetHeight;
         cartContainer.classList.add('show');
         updateCartDisplay();
       }
@@ -1348,20 +1360,6 @@
 
         productsContainer.appendChild(productCard);
       });
-    }
-
-    // Обновляем HTML структуру корзины
-    function createCartHTML() {
-      return `
-        <div class="header-container">
-          <h2>Корзина</h2>
-          <button class="back-button" onclick="toggleCart()">✕</button>
-        </div>
-        <div class="cart-items" id="cart-items"></div>
-        <div class="checkout-container">
-          <button class="checkout-button" onclick="showCheckoutForm()">Оформить заказ</button>
-        </div>
-      `;
     }
 
     // Добавляем стили
