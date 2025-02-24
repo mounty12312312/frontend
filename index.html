@@ -727,7 +727,7 @@
     // Обновляем порядок выполнения при загрузке страницы
     // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
     let isInitialized = false;
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       console.log('DOMContentLoaded event triggered');
       if (isInitialized) return;
       isInitialized = true;
@@ -745,13 +745,14 @@
           balanceTextElement.style.display = 'block';
         }
 
-        Promise.all([
+        // Загружаем корзину перед отображением данных
+        await loadCartFromCache();
+
+        await Promise.all([
           fetchUserBalance(),
           fetchProducts(),
           fetchOrderHistory()
         ]);
-
-        loadCartFromCache();
         
         // Удаляем элементы загрузки
         const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text, .loading-container');
@@ -1024,17 +1025,21 @@
     }
 
     function loadCartFromCache() {
-      try {
-        const cached = localStorage.getItem('merch_cart');
-        if (cached) {
-          cartItems = JSON.parse(cached);
-          updateCartDisplay();
-          updateCartButton();
+      return new Promise((resolve) => {
+        try {
+          const cached = localStorage.getItem('merch_cart');
+          if (cached) {
+            cartItems = JSON.parse(cached);
+            updateCartDisplay();
+            updateCartButton();
+          }
+          resolve();
+        } catch (error) {
+          console.error('Ошибка загрузки корзины:', error);
+          cartItems = {};
+          resolve();
         }
-      } catch (error) {
-        console.error('Ошибка загрузки корзины:', error);
-        cartItems = {};
-      }
+      });
     }
 
     function clearCartCache() {
@@ -1470,7 +1475,7 @@
             <span id="user-balance-value">0 Б</span>
             <span id="user-balance-text" style="display: none;">Нет баланса</span>
           </div>
-          <button class="header-button" onclick="toggleCart()">Корзина: 0 Б</button>
+          <button class="header-button" onclick="toggleCart()">Корзина</button>
           <button class="header-button" onclick="toggleHistory()">История заказов</button>
         `;
       }
