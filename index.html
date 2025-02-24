@@ -726,14 +726,18 @@
     }
     
     .close-details-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
       background: none;
-      border: none;
+      border: 1px solid #666;
+      border-radius: 6px;
       font-size: 24px;
       cursor: pointer;
       color: #666;
+      padding: 5px 15px;
+      transition: all 0.2s;
+    }
+    
+    .close-details-button:hover {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -1600,51 +1604,58 @@
       
       modal.innerHTML = `
         <div class="order-details-content">
-          <button class="close-details-button" onclick="closeOrderDetails(this)">&times;</button>
-          
-          <div class="order-details-section">
-            <h3>Содержание заказа</h3>
-            ${Object.entries(orderData).map(([id, item]) => `
-              <div class="order-product-item">
-                <span>${item.name} × ${item.quantity}</span>
-                <span>${formatPrice(item.price * item.quantity)}</span>
-              </div>
-            `).join('')}
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">Содержание заказа</h3>
+            <button class="close-details-button" onclick="closeOrderDetails(this)" 
+              style="position: static; padding: 5px 10px; font-size: 16px;">
+              Назад
+            </button>
           </div>
-          
-          <div class="order-total-cost">
-            Итого: ${formatPrice(order.totalCost)}
+          ${Object.entries(orderData).map(([id, item]) => `
+            <div class="order-product-item">
+              <span>${item.name} × ${item.quantity}</span>
+              <span>${formatPrice(item.price * item.quantity)}</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="order-total-cost">
+          Итого: ${formatPrice(order.totalCost)}
+        </div>
+        
+        <div class="order-details-section">
+          <h3>Данные доставки</h3>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Трек-номер</span>
+            <span class="delivery-info-value">${order.trackNumber}</span>
           </div>
-          
-          <div class="order-details-section">
-            <h3>Данные доставки</h3>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Отправитель</span>
-              <span class="delivery-info-value">${deliveryInfo.senderName}</span>
-            </div>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Телефон отправителя</span>
-              <span class="delivery-info-value">${deliveryInfo.senderPhone}</span>
-            </div>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Получатель</span>
-              <span class="delivery-info-value">${deliveryInfo.recipient}</span>
-            </div>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Телефон получателя</span>
-              <span class="delivery-info-value">${deliveryInfo.phone}</span>
-            </div>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Город</span>
-              <span class="delivery-info-value">${deliveryInfo.city}</span>
-            </div>
-            <div class="delivery-info-item">
-              <span class="delivery-info-label">Адрес</span>
-              <span class="delivery-info-value">${deliveryInfo.address}</span>
-            </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Отправитель</span>
+            <span class="delivery-info-value">${deliveryInfo.senderName}</span>
+          </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Телефон отправителя</span>
+            <span class="delivery-info-value">${deliveryInfo.senderPhone}</span>
+          </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Получатель</span>
+            <span class="delivery-info-value">${deliveryInfo.recipient}</span>
+          </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Телефон получателя</span>
+            <span class="delivery-info-value">${deliveryInfo.phone}</span>
+          </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Город</span>
+            <span class="delivery-info-value">${deliveryInfo.city}</span>
+          </div>
+          <div class="delivery-info-item">
+            <span class="delivery-info-label">Адрес</span>
+            <span class="delivery-info-value">${deliveryInfo.address}</span>
           </div>
         </div>
-      `;
+      </div>
+    `;
       
       document.body.appendChild(modal);
       setTimeout(() => modal.style.display = 'flex', 0);
