@@ -610,6 +610,43 @@
     button.cart-checkout-button:not(.cart-container *) {
       display: none !important;
     }
+    /* Обновляем стили для кнопки оформления заказа */
+    .cart-container {
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 80px; /* Отступ для кнопки */
+    }
+    .checkout-container {
+      position: fixed;
+      bottom: 0;
+      left: auto;
+      right: 0;
+      width: 400px; /* Соответствует ширине корзины */
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #eee;
+    }
+    .checkout-button {
+      width: 90%;
+      margin: 0 auto;
+      background-color: #ff355f;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 16px;
+      display: block;
+    }
+    .checkout-button:disabled {
+      background-color: #ffb3c0;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -736,6 +773,7 @@
 
       try {
         createRequiredElements();
+        loadCartFromCache();
         
         const balanceValueElement = document.getElementById('user-balance-value');
         const balanceTextElement = document.getElementById('user-balance-text');
@@ -750,20 +788,12 @@
           fetchProducts(),
           fetchOrderHistory()
         ]);
-
-        loadCartFromCache();
         
         // Удаляем элементы загрузки
         const loadingElements = document.querySelectorAll('.loading-overlay, #loading-overlay, .loading-text, .loading-container');
         loadingElements.forEach(el => {
           if (el) el.remove();
         });
-        
-        // Удаляем кнопку с главного экрана
-        const mainCheckoutButton = document.querySelector('#main-checkout-button');
-        if (mainCheckoutButton) {
-          mainCheckoutButton.remove();
-        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -1094,10 +1124,7 @@
       const cartItemsList = document.getElementById('cart-items');
       const checkoutButton = document.querySelector('.checkout-button');
       
-      console.log('Обновление отображения корзины');
-      console.log('Кнопка найдена:', !!checkoutButton);
-      
-      if (!cartItemsList) return;
+      if (!cartItemsList || !checkoutButton) return;
       
       cartItemsList.innerHTML = '';
 
@@ -1105,9 +1132,9 @@
       
       if (!hasItems) {
         cartItemsList.innerHTML = '<p style="text-align: center; color: #888;">Корзина пуста</p>';
-        checkoutButton.classList.remove('visible');
+        checkoutButton.disabled = true;
       } else {
-        checkoutButton.classList.add('visible');
+        checkoutButton.disabled = false;
         
         for (const productId in cartItems) {
           const item = cartItems[productId];
