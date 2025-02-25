@@ -1213,25 +1213,24 @@
       }
 
       try {
+        const cachedBalance = localStorage.getItem(CACHE_KEYS.USER_BALANCE);
+        if (cachedBalance !== null) {
+          updateUserBalance(parseInt(cachedBalance));
+          updateCartDisplay();
+          return parseInt(cachedBalance);
+        }
+
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
-        console.log('Balance response status:', response.status);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const data = await response.json();
-        console.log('Balance data received:', data);
+        const balance = parseInt(data[1]);
 
-        if (data && data[1] !== undefined) {
-          updateUserBalance(data[1]);
-        } else {
-          console.error('Invalid balance data:', data);
-          updateUserBalance(null);
-        }
+        localStorage.setItem(CACHE_KEYS.USER_BALANCE, balance.toString());
+        updateUserBalance(balance);
+        updateCartDisplay();
+        return balance;
       } catch (error) {
-        console.error('Ошибка при получении баланса:', error);
-        updateUserBalance(null);
+        console.error('Error fetching balance:', error);
+        return null;
       }
     }
 
@@ -1360,13 +1359,35 @@
 
       const hasItems = Object.keys(cartItems).length > 0;
       
+      // Получаем текущий баланс пользователя
+      const balanceElement = document.getElementById('user-balance-value');
+      const currentBalance = balanceElement ? 
+        parseInt(balanceElement.textContent.replace(/[^0-9]/g, '')) : 0;
+      
+      // Считаем общую стоимость корзины
+      const totalCost = Object.values(cartItems).reduce((sum, item) => 
+        sum + (item.price * item.quantity), 0);
+      
+      // Проверяем, достаточно ли баланса
+      const hasEnoughBalance = totalCost <= currentBalance;
+
       if (!hasItems) {
         cartItemsList.innerHTML = '<p style="text-align: center; color: #888;">Корзина пуста</p>';
         checkoutButton.classList.remove('visible');
-        checkoutButton.disabled = true; // Делаем кнопку неактивной
+        checkoutButton.disabled = true;
       } else {
         checkoutButton.classList.add('visible');
-        checkoutButton.disabled = false; // Делаем кнопку активной
+        checkoutButton.disabled = !hasEnoughBalance;
+        
+        // Добавляем подсказку, если баланса недостаточно
+        if (!hasEnoughBalance) {
+          const shortageAmount = totalCost - currentBalance;
+          cartItemsList.insertAdjacentHTML('afterbegin', 
+            `<p style="text-align: center; color: #ff355f; margin-bottom: 15px;">
+              Недостаточно баллов (не хватает ${formatPrice(shortageAmount)})
+            </p>`
+          );
+        }
         
         for (const productId in cartItems) {
           const item = cartItems[productId];
