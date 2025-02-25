@@ -1001,7 +1001,7 @@
         };
 
         const result = await checkout(deliveryInfo);
-        if (result.success) {
+        if (result && result.success) {
           hideCheckoutForm();
           clearCartCache();
         }
