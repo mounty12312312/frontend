@@ -332,6 +332,11 @@
       justify-content: space-around;
       padding: 10px;
       margin-top: 20px;
+      position: sticky;
+      bottom: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
     }
     .form-buttons button {
       padding: 12px 30px;
@@ -1764,13 +1769,13 @@
           setTimeout(() => {
             // Вычисляем позицию для прокрутки
             const inputRect = input.getBoundingClientRect();
-            const buttonsHeight = formButtons.offsetHeight;
             const windowHeight = window.innerHeight;
             const keyboardHeight = windowHeight - window.visualViewport.height;
+            const suggestionsHeight = 40; // Примерная высота подсказок T9
             
-            // Прокручиваем так, чтобы поле ввода и кнопки были видны
+            // Прокручиваем так, чтобы поле ввода было видно над клавиатурой и подсказками
             const scrollTop = window.pageYOffset + inputRect.top - 
-              (windowHeight - keyboardHeight - buttonsHeight - inputRect.height - 20);
+              (windowHeight - keyboardHeight - suggestionsHeight - inputRect.height - 20);
             
             window.scrollTo({
               top: Math.max(0, scrollTop),
@@ -1780,7 +1785,6 @@
         });
       });
       
-      // Добавляем обработчик отправки формы
       form.addEventListener('submit', (e) => {
         e.preventDefault();
         document.activeElement.blur();
