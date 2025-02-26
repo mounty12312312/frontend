@@ -309,7 +309,8 @@
       max-width: 500px;
       position: relative;
       margin: 20px auto;
-      margin-bottom: 80px;
+      margin-bottom: 100px; /* Увеличиваем отступ снизу для кнопок */
+      padding-bottom: 60px; /* Добавляем отступ для контента */
     }
     .form-group {
       margin-bottom: 15px;
@@ -328,24 +329,33 @@
       font-size: 16px;
     }
     .form-buttons {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+      justify-content: space-around;
+      padding: 10px;
+      background-color: white;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 2001;
     }
     .form-buttons button {
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .form-buttons .cancel {
-      background-color: #f8f9fa;
-      border: 1px solid #ddd;
-    }
-    .form-buttons .submit {
-      background-color: #007bff;
-      color: white;
+      padding: 12px 30px;
       border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      width: 45%;
+      max-width: 200px;
+    }
+    .form-buttons .cancel-button {
+      background-color: #f8f9fa;
+      color: #666;
+      margin-right: 10px;
+    }
+    .form-buttons .submit-button {
+      background-color: #ff355f;
+      color: white;
     }
     .empty-state {
       display: flex;
@@ -811,6 +821,17 @@
         opacity: 1;
       }
     }
+
+    /* Добавляем стили для iOS */
+    @supports (-webkit-touch-callout: none) {
+      .checkout-form {
+        padding-bottom: 80px; /* Дополнительный отступ для iOS */
+      }
+      
+      .form-buttons {
+        padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* Учитываем отступ для iPhone X и новее */
+      }
+    }
   </style>
 </head>
 <body>
@@ -874,8 +895,8 @@
         <input type="text" id="address" required>
       </div>
       <div class="form-buttons">
-        <button class="cancel" onclick="hideCheckoutForm()">Отмена</button>
-        <button class="submit" onclick="submitOrder()">Подтвердить</button>
+        <button class="cancel-button" onclick="hideCheckoutForm()">Отмена</button>
+        <button class="submit-button" onclick="submitOrder()">Подтвердить</button>
       </div>
     </div>
   </div>
