@@ -298,7 +298,8 @@
       z-index: 2000;
       justify-content: center;
       align-items: flex-start;
-      padding-top: 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .checkout-form {
       background-color: white;
@@ -306,10 +307,9 @@
       border-radius: 12px;
       width: 90%;
       max-width: 500px;
-      max-height: 85vh;
-      overflow-y: auto;
-      margin-bottom: 20px;
       position: relative;
+      margin: 20px auto;
+      margin-bottom: 80px;
     }
     .form-group {
       margin-bottom: 15px;
@@ -321,13 +321,11 @@
     }
     .form-group input {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
+      padding: 8px;
       border: 1px solid #ddd;
-      border-radius: 8px;
+      border-radius: 4px;
+      box-sizing: border-box;
       font-size: 16px;
-      -webkit-appearance: none;
-      appearance: none;
     }
     .form-buttons {
       display: flex;
@@ -813,19 +811,6 @@
         opacity: 1;
       }
     }
-
-    /* Добавляем медиа-запрос для мобильных устройств */
-    @media (max-height: 700px) {
-      .checkout-form-container {
-        align-items: flex-start;
-        padding-top: 10px;
-      }
-      
-      .checkout-form {
-        max-height: 90vh;
-        margin-bottom: 10px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -863,15 +848,34 @@
   </div>
   <div class="checkout-form-container" id="checkout-form-container">
     <div class="checkout-form">
-      <h2>Оформление заказа</h2>
-      <input type="text" id="sender-name" placeholder="ФИО отправителя" required>
-      <input type="tel" id="sender-phone" placeholder="Телефон отправителя" required>
-      <input type="text" id="recipient" placeholder="ФИО получателя" required>
-      <input type="tel" id="phone" placeholder="Телефон получателя" required>
-      <input type="text" id="city" placeholder="Город" required>
-      <input type="text" id="address" placeholder="Адрес" required>
-      <div class="checkout-button-container">
-        <button onclick="submitOrder()" class="submit-button">Подтвердить</button>
+      <h3>Оформление заказа</h3>
+      <div class="form-group">
+        <label for="sender-name">ФИО отправителя*</label>
+        <input type="text" id="sender-name" required>
+      </div>
+      <div class="form-group">
+        <label for="sender-phone">Телефон отправителя*</label>
+        <input type="tel" id="sender-phone" required>
+      </div>
+      <div class="form-group">
+        <label for="recipient">ФИО получателя*</label>
+        <input type="text" id="recipient" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Телефон получателя*</label>
+        <input type="tel" id="phone" required>
+      </div>
+      <div class="form-group">
+        <label for="city">Город*</label>
+        <input type="text" id="city" required>
+      </div>
+      <div class="form-group">
+        <label for="address">Адрес доставки*</label>
+        <input type="text" id="address" required>
+      </div>
+      <div class="form-buttons">
+        <button class="cancel" onclick="hideCheckoutForm()">Отмена</button>
+        <button class="submit" onclick="submitOrder()">Подтвердить</button>
       </div>
     </div>
   </div>
@@ -950,36 +954,7 @@
 
     // Добавляем новые функции для работы с формой
     function showCheckoutForm() {
-      const formContainer = document.createElement('div');
-      formContainer.className = 'checkout-form-container';
-      
-      formContainer.innerHTML = `
-        <div class="checkout-form">
-          <h2>Оформление заказа</h2>
-          <input type="text" id="sender-name" placeholder="ФИО отправителя" required>
-          <input type="tel" id="sender-phone" placeholder="Телефон отправителя" required>
-          <input type="text" id="recipient" placeholder="ФИО получателя" required>
-          <input type="tel" id="phone" placeholder="Телефон получателя" required>
-          <input type="text" id="city" placeholder="Город" required>
-          <input type="text" id="address" placeholder="Адрес" required>
-          <div class="checkout-button-container">
-            <button onclick="submitOrder()" class="submit-button">Подтвердить</button>
-          </div>
-        </div>
-      `;
-
-      // Добавляем обработчики для прокрутки при фокусе на поле ввода
-      const inputs = formContainer.querySelectorAll('input');
-      inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-          setTimeout(() => {
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 300);
-        });
-      });
-
-      document.body.appendChild(formContainer);
-      formContainer.style.display = 'flex';
+      document.getElementById('checkout-form-container').style.display = 'flex';
     }
 
     function hideCheckoutForm() {
@@ -1763,5 +1738,27 @@
         modal.style.display = 'none';
       }
     }
+
+    // Добавляем обработчики для полей ввода
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputs = document.querySelectorAll('.checkout-form input');
+      const form = document.querySelector('.checkout-form');
+      
+      inputs.forEach(input => {
+        // При фокусе прокручиваем к полю ввода
+        input.addEventListener('focus', () => {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      });
+      
+      // Добавляем обработчик отправки формы
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Убираем фокус с полей ввода при отправке
+        document.activeElement.blur();
+      });
+    });
   </script>
 </body>
