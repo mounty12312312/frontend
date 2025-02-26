@@ -309,8 +309,7 @@
       max-width: 500px;
       position: relative;
       margin: 20px auto;
-      margin-bottom: 100px; /* Увеличиваем отступ снизу для кнопок */
-      padding-bottom: 60px; /* Добавляем отступ для контента */
+      margin-bottom: 20px;
     }
     .form-group {
       margin-bottom: 15px;
@@ -329,16 +328,10 @@
       font-size: 16px;
     }
     .form-buttons {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
       display: flex;
       justify-content: space-around;
       padding: 10px;
-      background-color: white;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 2001;
+      margin-top: 20px;
     }
     .form-buttons button {
       padding: 12px 30px;
@@ -1764,12 +1757,25 @@
     document.addEventListener('DOMContentLoaded', () => {
       const inputs = document.querySelectorAll('.checkout-form input');
       const form = document.querySelector('.checkout-form');
+      const formButtons = document.querySelector('.form-buttons');
       
       inputs.forEach(input => {
-        // При фокусе прокручиваем к полю ввода
         input.addEventListener('focus', () => {
           setTimeout(() => {
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Вычисляем позицию для прокрутки
+            const inputRect = input.getBoundingClientRect();
+            const buttonsHeight = formButtons.offsetHeight;
+            const windowHeight = window.innerHeight;
+            const keyboardHeight = windowHeight - window.visualViewport.height;
+            
+            // Прокручиваем так, чтобы поле ввода и кнопки были видны
+            const scrollTop = window.pageYOffset + inputRect.top - 
+              (windowHeight - keyboardHeight - buttonsHeight - inputRect.height - 20);
+            
+            window.scrollTo({
+              top: Math.max(0, scrollTop),
+              behavior: 'smooth'
+            });
           }, 300);
         });
       });
@@ -1777,7 +1783,6 @@
       // Добавляем обработчик отправки формы
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        // Убираем фокус с полей ввода при отправке
         document.activeElement.blur();
       });
     });
