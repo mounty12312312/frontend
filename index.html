@@ -906,14 +906,6 @@
     let userBalanceValue = document.getElementById('user-balance-value');
     let userBalanceText = document.getElementById('user-balance-text');
 
-    // Добавляем константы для кэширования
-    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
-    const CACHE_KEYS = {
-      PRODUCTS: 'cached_products',
-      USER_BALANCE: 'cached_user_balance',
-      ORDERS: 'cached_orders'
-    };
-
     // Обновляем порядок выполнения при загрузке страницы
     // Удалим все существующие обработчики DOMContentLoaded и объединим их в один
     let isInitialized = false;
@@ -1207,24 +1199,11 @@
 
     // Обновляем функцию получения баланса
     async function fetchUserBalance() {
-      if (!telegramId) {
-        console.error('TelegramId not found');
-        return;
-      }
-
       try {
-        const cachedBalance = localStorage.getItem(CACHE_KEYS.USER_BALANCE);
-        if (cachedBalance !== null) {
-          updateUserBalance(parseInt(cachedBalance));
-          updateCartDisplay();
-          return parseInt(cachedBalance);
-        }
-
         const response = await fetch(`${BACKEND_URL}/api/user/${telegramId}`);
         const data = await response.json();
         const balance = parseInt(data[1]);
 
-        localStorage.setItem(CACHE_KEYS.USER_BALANCE, balance.toString());
         updateUserBalance(balance);
         updateCartDisplay();
         return balance;
@@ -1491,10 +1470,9 @@
       }
     }
 
-    // Добавляем функцию очистки кэша после успешной покупки
+    // Обновляем функцию очистки кэша после успешной покупки
     function clearCache() {
-      localStorage.removeItem(CACHE_KEYS.USER_BALANCE);
-      localStorage.removeItem(CACHE_KEYS.ORDERS);
+      localStorage.removeItem('orders');
     }
 
     // Функция показа загрузки
